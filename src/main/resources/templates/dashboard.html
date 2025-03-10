@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Ice Candy Lovers - Dashboard</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Estilos Personalizados -->
+    <style>
+        :root {
+            --primary-color: #6EC3C4;    /* Azul Ice */
+            --secondary-color: #FF99CC;  /* Rosa Doce */
+            --accent-color: #FFD700;     /* Dourado */
+            --text-dark: #2E2E2E;
+            --text-light: #FFFFFF;
+        }
+
+        body {
+            background-color: #F8F9FA;
+            color: var(--text-dark);
+        }
+
+        /* Navbar Estilizada */
+        .navbar-ice {
+            background: var(--primary-color) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Sidebar Responsiva */
+        .sidebar {
+            background: white;
+            min-height: 100vh;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                min-height: auto;
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Cards Métricas */
+        .card-metric {
+            border: none;
+            border-radius: 15px;
+            transition: transform 0.3s;
+        }
+
+        .card-metric:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-primary {
+            background: linear-gradient(135deg, var(--primary-color), #5AB0B2);
+            color: var(--text-light);
+        }
+
+        .card-secondary {
+            background: linear-gradient(135deg, var(--secondary-color), #FF80B5);
+            color: var(--text-light);
+        }
+
+        /* Tabela Responsiva */
+        .table-responsive-ice {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .table-ice thead {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Botões */
+        .btn-ice {
+            background: var(--secondary-color);
+            color: white;
+            border-radius: 25px;
+            padding: 8px 25px;
+            border: none;
+        }
+
+        .btn-ice:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 576px) {
+            .mobile-text-md {
+                font-size: 0.9rem;
+            }
+
+            .mobile-hide {
+                display: none;
+            }
+
+            .card-metric {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-ice navbar-expand-lg">
+    <div class="container-fluid">
+        <a class="navbar-brand text-white fw-bold" href="#">
+            🍦 Ice Candy Lovers
+            <small class="d-block d-md-inline fs-6">Geladinho Gourmet</small>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-2 sidebar p-3">
+            <div class="d-flex flex-column">
+                <div class="mb-4">
+                    <h5 class="text-primary fw-bold">Menu</h5>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/geladinhos/novo">Novo Geladinho</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Estoque</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/vendas/nova">Vendas</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="col-lg-10 p-4">
+            <!-- Cards Métricas -->
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="card card-metric card-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">Vendas Hoje</h5>
+                        <p class="display-6">
+                            R$ <span th:text="${#numbers.formatDecimal(vendasHoje, 1, 2, 'COMMA')}">0.00</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="card card-metric card-secondary">
+                        <div class="card-body">
+                            <h5 class="card-title">Geladinhos em Estoque</h5>
+                            <p class="display-6" th:text="${totalEstoque}">0</p>
+                        </div>
+                    </div>
+                </div>
+
+            <!-- Tabela de Estoque -->
+            <div class="table-responsive-ice">
+                <table class="table table-ice table-hover">
+                    <thead>
+                    <tr>
+                        <th>Sabor</th>
+                        <th class="mobile-hide">Ingredientes</th>
+                        <th>Estoque</th>
+                        <th>Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="produto : ${produtos}">
+                        <td th:text="${produto.sabor}"></td>
+                        <td class="mobile-hide">
+                                    <span th:each="ing : ${produto.ingredientes}"
+                                          class="badge bg-light text-dark me-1"
+                                          th:text="${ing.nome}"></span>
+                        </td>
+                        <td>
+                                    <span th:class="${produto.estoqueAtual < 10} ? 'text-danger fw-bold' : ''"
+                                          th:text="${produto.estoqueAtual}"></span>
+                        </td>
+                        <td>
+                            <a th:href="@{/geladinhos/editar/{id}(id=${produto.id})}"
+                               class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil"></i>
+                                <span class="d-none d-md-inline">Editar</span>
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS e Ícones -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+</body>
+</html>

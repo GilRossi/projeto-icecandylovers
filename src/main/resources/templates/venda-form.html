@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cadastro de Geladinho</title>
+
+    <!-- Bootstrap 5 e Ícones -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --primary-color: #6EC3C4;    /* Mesma paleta do dashboard */
+            --secondary-color: #FF99CC;
+            --accent-color: #FFD700;
+            --text-dark: #2E2E2E;
+            --text-light: #FFFFFF;
+        }
+
+        .card-cadastro {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 2rem auto;
+        }
+
+        /* Botão alinhado ao tema */
+        .btn-ice {
+            background: var(--secondary-color);
+            color: white;
+            border-radius: 25px;
+            padding: 8px 25px;
+            border: none;
+        }
+
+        .btn-ice:hover {
+            background: var(--primary-color);
+        }
+    </style>
+</head>
+<body class="bg-light">
+<!-- Navbar -->
+<nav class="navbar navbar-ice navbar-expand-lg">
+    <div class="container-fluid">
+        <a class="navbar-brand text-white fw-bold" href="#">
+            🍦 Ice Candy Lovers
+            <small class="d-block d-md-inline fs-6">Geladinho Gourmet</small>
+        </a>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-2 sidebar p-3">
+            <div class="d-flex flex-column">
+                <div class="mb-4">
+                    <h5 class="text-primary fw-bold">Menu</h5>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/geladinhos/novo">Novo Geladinho</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Estoque</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="col-lg-10 p-4">
+            <div class="card card-cadastro">
+                <div class="card-header bg-primary text-white">
+                    <h4>🍦 Cadastro de Geladinho</h4>
+                </div>
+                <div class="card-body">
+                    <!-- venda-form.html -->
+                    <form th:action="@{/vendas/nova}" method="post" th:object="${venda}">
+                        <div class="mb-3">
+                            <label>Produto</label>
+                            <select class="form-select" th:field="*{produtoId}">
+                                <!-- Adicione uma opção vazia -->
+                                <option value="">Selecione um produto</option>
+                                <option th:each="produto : ${produtos}"
+                                        th:value="${produto.id}"
+                                        th:text="${produto.sabor}"></option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Quantidade</label>
+                            <input type="number" class="form-control" th:field="*{quantidade}">
+                        </div>
+                        <button type="submit" class="btn btn-ice">
+                            <i class="bi bi-cart-check"></i>
+                            Registrar Venda
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function addIngrediente() {
+        const container = document.getElementById('ingredientes-container');
+        const index = container.children.length;
+
+        const newIngrediente = `
+            <div class="ingrediente-item row g-2">
+                <div class="col-5">
+                    <select class="form-select" name="ingredientes[${index}].ingrediente.id">
+                        <option value="">Selecione um ingrediente</option>
+                        <option th:each="ing : ${allIngredientes}"
+                                th:value="${ing.id}"
+                                th:text="${ing.nome}"></option>
+                    </select>
+                </div>
+                <div class="col-5">
+                    <input type="number" step="0.1" class="form-control"
+                           name="ingredientes[${index}].quantidade"
+                           placeholder="Quantidade (gramas)" required>
+                </div>
+                <div class="col-2">
+                    <i class="bi bi-x-circle-fill remove-ingrediente"
+                       onclick="removeIngrediente(this)"></i>
+                </div>
+            </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', newIngrediente);
+    }
+
+    function removeIngrediente(element) {
+        element.closest('.ingrediente-item').remove();
+    }
+</script>
+</body>
+</html>

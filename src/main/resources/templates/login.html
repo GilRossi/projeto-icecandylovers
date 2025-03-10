@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>IceCandy Lovers - Login</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Estilos Personalizados -->
+    <style>
+        :root {
+            --primary-color: #6EC3C4;    /* Azul gelado */
+            --secondary-color: #FF99CC;  /* Rosa suave */
+            --accent-color: #FFD700;     /* Dourado */
+            --text-color: #333333;
+        }
+
+        body {
+            background: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .brand-logo {
+            background: var(--primary-color);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .brand-text {
+            font-family: 'Arial Rounded MT Bold', sans-serif;
+            color: white;
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .login-form {
+            padding: 2rem;
+        }
+
+        .btn-ice {
+            background: var(--secondary-color);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            transition: all 0.3s;
+        }
+
+        .btn-ice:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(110,195,196,0.25);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="login-card">
+        <div class="brand-logo">
+            <div class="brand-text">
+                🍦 Ice Candy Lovers
+            </div>
+            <small class="text-white">Geladinho Gourmet</small>
+        </div>
+
+        <div class="login-form">
+            <form th:action="@{/login}" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Usuário</label>
+                    <input type="text" class="form-control" name="username" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Senha</label>
+                    <input type="password" class="form-control" name="password" required>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-ice">
+                        Entrar
+                    </button>
+                </div>
+
+                <div th:if="${param.error}" class="alert alert-danger mt-3">
+                    Usuário ou senha inválidos!
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
