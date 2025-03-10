@@ -10,103 +10,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
     <!-- Estilos Personalizados -->
-    <style>
-        :root {
-            --primary-color: #9370DB;    /* Azul Ice */
-            --secondary-color: #FF99CC;  /* Rosa Doce */
-            --accent-color: #FFD700;     /* Dourado */
-            --text-dark: #2E2E2E;
-            --text-light: #FFFFFF;
-        }
+    <script th:inline="javascript">
+        // Pré-carrega os ingredientes
+        const allIngredientes = /*[[${allIngredientes}]]*/ [];
+    </script>
 
-        body {
-            background-color: #F8F9FA;
-            color: var(--text-dark);
-        }
-
-        /* Navbar Estilizada */
-        .navbar-ice {
-            background: var(--primary-color) !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        /* Sidebar Responsiva */
-        .sidebar {
-            background: white;
-            min-height: 100vh;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                min-height: auto;
-                margin-bottom: 1rem;
-            }
-        }
-
-        /* Cards Métricas */
-        .card-metric {
-            border: none;
-            border-radius: 15px;
-            transition: transform 0.3s;
-        }
-
-        .card-metric:hover {
-            transform: translateY(-5px);
-        }
-
-        .card-primary {
-            background: linear-gradient(135deg, var(--primary-color), #5AB0B2);
-            color: var(--text-light);
-        }
-
-        .card-secondary {
-            background: linear-gradient(135deg, var(--secondary-color), #FF80B5);
-            color: var(--text-light);
-        }
-
-        /* Tabela Responsiva */
-        .table-responsive-ice {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-
-        .table-ice thead {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        /* Botões */
-        .btn-ice {
-            background: var(--secondary-color);
-            color: white;
-            border-radius: 25px;
-            padding: 8px 25px;
-            border: none;
-        }
-
-        .btn-ice:hover {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        /* Mobile Optimization */
-        @media (max-width: 576px) {
-            .mobile-text-md {
-                font-size: 0.9rem;
-            }
-
-            .mobile-hide {
-                display: none;
-            }
-
-            .card-metric {
-                margin-bottom: 1rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body class="bg-light">
 <!-- Navbar -->
@@ -133,6 +42,12 @@
                         <li class="nav-item">
                             <a class="nav-link" href="#">Estoque</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/vendas/nova">Vendas</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/taxas/editar">Taxas</a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -157,13 +72,6 @@
                         <!-- Preço e Estoque -->
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
-                                <label class="form-label">Preço de Venda</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">R$</span>
-                                    <input type="number" step="0.01" class="form-control" th:field="*{precoVenda}" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
                                 <label class="form-label">Estoque Inicial</label>
                                 <input type="number" class="form-control" th:field="*{estoqueInicial}" required>
                             </div>
@@ -171,12 +79,74 @@
                                 <label class="form-label">Estoque Atual</label>
                                 <input type="number" class="form-control" th:field="*{estoqueAtual}" required>
                             </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Preço de Custo (Calculado)</label>
+                                <input type="number" step="0.01" class="form-control"
+                                       th:field="*{precoCusto}" readonly>
+                            </div>
                         </div>
+
+                        <!-- Horas de Utilidades -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Horas de Água</label>
+                                <input type="number" step="0.1" class="form-control"
+                                       th:field="*{horasAgua}" required oninput="calcularTotalCusto()">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Horas de Energia</label>
+                                <input type="number" step="0.1" class="form-control"
+                                       th:field="*{horasEnergia}" required oninput="calcularTotalCusto()">
+                            </div>
+                            <!-- Seção de Queimadores -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-12">
+                                    <label class="form-label">Selecione os Queimadores Utilizados:</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               id="quadrichamaCheck" name="queimadores"
+                                               value="quadrichama" th:checked="${produto.usoQuadrichama}"
+                                               onchange="calcularTotalCusto()">
+                                        <label class="form-check-label" for="quadrichamaCheck">Quadrichama</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               id="rapidoCheck" name="queimadores"
+                                               value="rapido" th:checked="${produto.usoRapido}"
+                                               onchange="calcularTotalCusto()">
+                                        <label class="form-check-label" for="rapidoCheck">Rápido</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               id="semirapidoCheck" name="queimadores"
+                                               value="semirapido" th:checked="${produto.usoSemirapido}"
+                                               onchange="calcularTotalCusto()">
+                                        <label class="form-check-label" for="semirapidoCheck">Semirápido</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Campos Ocultos para Taxas dos Queimadores (Recebidos do Backend) -->
+                            <input type="hidden" id="taxaQuadrichama" th:value="${taxaQuadrichama}">
+                            <input type="hidden" id="taxaRapido" th:value="${taxaRapido}">
+                            <input type="hidden" id="taxaSemirapido" th:value="${taxaSemirapido}">
+                            <div class="col-md-4">
+                                <label class="form-label">Horas de Gás</label>
+                                <input type="number" step="0.1" class="form-control"
+                                       th:field="*{horasGas}" required oninput="calcularTotalCusto()">
+                            </div>
+                        </div>
+
+                        <!-- Campos ocultos para taxas (vinculados ao backend) -->
+                        <input type="hidden" th:field="*{taxaAgua}" id="taxaAgua">
+                        <input type="hidden" th:field="*{taxaGas}" id="taxaGas">
+                        <input type="hidden" th:field="*{taxaEnergia}" id="taxaEnergia">
 
                         <!-- Seção de Ingredientes -->
                         <div class="mb-4">
                             <label class="form-label">Ingredientes</label>
                             <div id="ingredientes-container">
+
                                 <!-- Item de Ingrediente (Loop para edição) -->
                                 <div class="ingrediente-item row g-2"
                                      th:each="prodIngrediente, stat : *{ingredientes}"
@@ -188,13 +158,15 @@
                                             <option th:each="ing : ${allIngredientes}"
                                                     th:value="${ing.id}"
                                                     th:text="${ing.nome}"
-                                                    th:selected="${ing.id == prodIngrediente.ingrediente.id}"></option>
+                                                    th:data-custo="${ing.custoPorUnidade}">
+                                            </option>
                                         </select>
                                     </div>
                                     <div class="col-5">
-                                        <input type="number" step="0.1" class="form-control"
+                                        <input type="number" step="0.1" class="form-control quantidade-input"
                                                th:field="*{quantidade}"
-                                               placeholder="Quantidade (gramas)" required>
+                                               placeholder="Quantidade (gramas)" required
+                                               onchange="updateCusto(this)">
                                     </div>
                                     <div class="col-2">
                                         <i class="bi bi-x-circle-fill remove-ingrediente"
@@ -222,39 +194,6 @@
     </div>
 </div>
 
-<script>
-    function addIngrediente() {
-        const container = document.getElementById('ingredientes-container');
-        const index = container.children.length;
-
-        const newIngrediente = `
-            <div class="ingrediente-item row g-2">
-                <div class="col-5">
-                    <select class="form-select" name="ingredientes[${index}].ingrediente.id">
-                        <option value="">Selecione um ingrediente</option>
-                        <option th:each="ing : ${allIngredientes}"
-                                th:value="${ing.id}"
-                                th:text="${ing.nome}"></option>
-                    </select>
-                </div>
-                <div class="col-5">
-                    <input type="number" step="0.1" class="form-control"
-                           name="ingredientes[${index}].quantidade"
-                           placeholder="Quantidade (gramas)" required>
-                </div>
-                <div class="col-2">
-                    <i class="bi bi-x-circle-fill remove-ingrediente"
-                       onclick="removeIngrediente(this)"></i>
-                </div>
-            </div>
-        `;
-
-        container.insertAdjacentHTML('beforeend', newIngrediente);
-    }
-
-    function removeIngrediente(element) {
-        element.closest('.ingrediente-item').remove();
-    }
-</script>
+<script src="/js/scripts.js"></script>
 </body>
 </html>

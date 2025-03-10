@@ -1,6 +1,7 @@
 package com.icecandylovers.controllers;
 
 import com.icecandylovers.services.IngredienteService;
+import com.icecandylovers.services.TaxaService;
 import org.springframework.ui.Model;
 import com.icecandylovers.entities.Produto;
 import com.icecandylovers.services.ProdutoService;
@@ -16,11 +17,15 @@ public class GeladinhoController {
 
     private final ProdutoService produtoService;
     private final IngredienteService ingredienteService;
+    private final TaxaService taxaService;
 
     @Autowired
-    public GeladinhoController(ProdutoService produtoService, IngredienteService ingredienteService) {
+    public GeladinhoController(ProdutoService produtoService,
+                               IngredienteService ingredienteService,
+                               TaxaService taxaService) {
         this.produtoService = produtoService;
         this.ingredienteService = ingredienteService;
+        this.taxaService = taxaService;
     }
 
    @GetMapping("/editar/{id}")
@@ -41,6 +46,13 @@ public class GeladinhoController {
     @GetMapping("/novo")
     public String showCadastroForm(Model model) {
         model.addAttribute("produto", new Produto());
+        model.addAttribute("allIngredientes", ingredienteService.listarTodos());
+
+        //Taxas de gás fogão/cooktop
+        model.addAttribute("taxaQuadrichama", taxaService.getTaxaQuadrichama());
+        model.addAttribute("taxaRapido", taxaService.getTaxaRapido());
+        model.addAttribute("taxaSemiRapido", taxaService.getTaxaSemiRapido());
+
         model.addAttribute("allIngredientes", ingredienteService.listarTodos());
         return "cadastro-geladinho";
     }

@@ -143,4 +143,5 @@ public class ProdutoService {
         return produtoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
     }
+
 }
