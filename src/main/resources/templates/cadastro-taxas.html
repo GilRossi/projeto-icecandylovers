@@ -85,18 +85,21 @@
                         <div class="row g-3 mb-4">
                             <div class="col-md-4">
                                 <label class="form-label">Poder Calórico (kcal)</label>
-                                <input type="number" step="0.01" class="form-control"
-                                       th:field="*{kcal}" id="kcal" disabled>
+                                <input type="number" step="0.0001" class="form-control"
+                                       th:field="*{kcal}" id="kcal"
+                                       onchange="converterEnergia(event)">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">MJ</label>
-                                <input type="number" step="0.01" class="form-control"
-                                       th:field="*{mj}" id="mj" disabled>
+                                <input type="number" step="0.0001" class="form-control"
+                                       th:field="*{mj}" id="mj"
+                                       onchange="converterEnergia(event)">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">kWh</label>
-                                <input type="number" step="0.01" class="form-control"
-                                       th:field="*{kwh}" id="kwh" disabled>
+                                <input type="number" step="0.0001" class="form-control"
+                                       th:field="*{kwh}" id="kwh"
+                                       onchange="converterEnergia(event)">
                             </div>
                         </div>
 
@@ -171,7 +174,7 @@
                                     <tr>
                                         <td>Semirápido</td>
                                         <td th:text="${taxas.semirapido} + ' kWh'"></td>
-                                        <td th:text="${taxas.kwh} + ' kWh'"></td>
+                                        <td><span id="resultadoKwh"></span></td>
                                     </tr>
                                     </tbody>
                                 </table>

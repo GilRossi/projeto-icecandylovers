@@ -4,92 +4,86 @@ const PRECOS_GAS = {
     GLP: 3.50
 };
 
-// Habilita campos e define preço inicial do gás
 function toggleCamposGas() {
     const tipoGas = document.getElementById('tipoGas').value;
     const taxaGasInput = document.getElementById('taxaGas');
-    const camposConversao = document.querySelectorAll('#kcal, #mj, #kwh');
-    const taxaGasInput = document.getElementById('taxaGas');
+    const camposConversao = document.querySelectorAll('#kcal, #mj, #kwh'); // Seleciona os campos de energia
     const precoGasGN = document.getElementById('precoGasGN');
     const precoGasGLP = document.getElementById('precoGasGLP');
 
-    // Habilita campos de energia se um tipo de gás for selecionado
-    camposEnergia.forEach(campo => campo.disabled = (tipoGas === ""));
+    // Habilita/desabilita campos de energia
+    camposConversao.forEach(campo => {
+            campo.disabled = (tipoGas === ""); // Desabilita apenas se não houver tipo
+            campo.readOnly = false; // Sempre permite edição (não bloqueia a exibição)
+    });
 
     // Resetar exibição de preços
     precoGasGN.classList.add('d-none');
     precoGasGLP.classList.add('d-none');
 
-    // Habilitar campos de conversão
-    camposConversao.forEach(campo => campo.disabled = (tipoGas === ""));
-
-    // Só define o valor se o campo estiver vazio
+    // Define o preço padrão se o campo estiver vazio
     if (taxaGasInput.value === "") {
-                if (tipoGas === "GN") {
-                    taxaGasInput.value = 5.00;
-                } else if (tipoGas === "GLP") {
-                    taxaGasInput.value = 3.50;
-           }
-       }
+        if (tipoGas === "GN") {
+            taxaGasInput.value = PRECOS_GAS.GN;
+        } else if (tipoGas === "GLP") {
+            taxaGasInput.value = PRECOS_GAS.GLP;
+        }
+    }
 
-    // Definir preço do gás e exibir badge
+    // Atualiza badge e valor do gás
     if (tipoGas === "GN") {
-        taxaGasInput.value = PRECOS_GAS.GN;
         precoGasGN.classList.remove('d-none');
     } else if (tipoGas === "GLP") {
-        taxaGasInput.value = PRECOS_GAS.GLP;
         precoGasGLP.classList.remove('d-none');
     } else {
         taxaGasInput.value = "";
+        camposConversao.forEach(campo => campo.value = ""); // Limpa campos se não houver tipo
     }
 
-    // Limpar campos se nenhum tipo for selecionado
-    if (tipoGas === "") {
-        camposConversao.forEach(campo => campo.value = "");
-    }
-
-    // Atualizar cálculos
+    // Atualiza cálculos
     calcularKwhKg();
 }
 
 // Conversão entre kcal, MJ e kWh
-function converterEnergia() {
+function converterEnergia(event) {
     const input = event.target;
     const valor = parseFloat(input.value) || 0;
     let kcal, mj, kwh;
 
-    // Lógica de conversão (exemplo)
+    // Fatores de conversão
+    const KCAL_TO_MJ = 0.004184;
+    const KCAL_TO_KWH = 0.00116222;
+    const MJ_TO_KWH = 0.277778;
+
     if (input.id === 'kcal') {
         kcal = valor;
-        mj = kcal * 0.004184;
-        kwh = kcal / 860;
+        mj = kcal * KCAL_TO_MJ;
+        kwh = kcal * KCAL_TO_KWH;
     } else if (input.id === 'mj') {
         mj = valor;
-        kcal = mj / 0.004184;
-        kwh = mj / 3.6;
+        kcal = mj / KCAL_TO_MJ;
+        kwh = mj * MJ_TO_KWH;
     } else if (input.id === 'kwh') {
         kwh = valor;
-        kcal = kwh * 860;
-        mj = kwh * 3.6;
+        kcal = kwh / KCAL_TO_KWH;
+        mj = kwh / MJ_TO_KWH;
     }
 
-    // Atualiza campos
-    document.getElementById('kcal').value = kcal?.toFixed(2) || '';
-    document.getElementById('mj').value = mj?.toFixed(2) || '';
-    document.getElementById('kwh').value = kwh?.toFixed(2) || '';
+    // Atualiza campos (sem disparar eventos)
+    document.getElementById('kcal').value = kcal?.toFixed(4) || '';
+    document.getElementById('mj').value = mj?.toFixed(4) || '';
+    document.getElementById('kwh').value = kwh?.toFixed(4) || '';
+
+    // Força atualização do cálculo de kWh/Kg
+    calcularKwhKg();
 }
 
-// Cálculo final dos kWh/Kg
+// Atualiza cálculos de kWh/Kg com os valores convertidos
 function calcularKwhKg() {
     const kwh = parseFloat(document.getElementById('kwh').value) || 0;
     const quadrichama = parseFloat(document.getElementById('quadrichama').value) || 0;
     const rapido = parseFloat(document.getElementById('rapido').value) || 0;
     const semirapido = parseFloat(document.getElementById('semirapido').value) || 0;
-
-    // Cálculos
-    document.getElementById('kwhKgQuadrichama').value = (quadrichama / kwh).toFixed(2);
-    document.getElementById('kwhKgRapido').value = (rapido / kwh).toFixed(2);
-    document.getElementById('kwhKgSemirapido').value = (semirapido / kwh).toFixed(2);
 }
 
 // Funções para adicionar/remover ingredientes
@@ -136,3 +130,8 @@ function updateCusto(element) {
     row.dataset.custo = (custoUnitario * quantidade).toFixed(2);
     calcularTotalCusto();
 }
+document.addEventListener('DOMContentLoaded', function() {
+    toggleCamposGas(); // Executa ao carregar a página
+});
+// Atualiza a tabela com o valor convertido de kWh
+document.getElementById('resultadoKwh').textContent = kwh?.toFixed(4) + ' kWh';

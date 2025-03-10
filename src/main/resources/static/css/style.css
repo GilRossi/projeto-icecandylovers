@@ -113,3 +113,13 @@ body {
     background: white;
     border-radius: 0 0 15px 15px;
 }
+/* Destacar campos convertidos */
+.input:read-only {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+}
+/* No arquivo style.css */
+.input:not([disabled]) {
+    background-color: white !important;
+    cursor: text;
+}
