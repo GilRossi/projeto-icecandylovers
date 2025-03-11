@@ -41,7 +41,7 @@ public class GeladinhoController {
     public String salvarGeladinho(@ModelAttribute Produto produto,
                                   @RequestParam Map<String, String> params) {
         produtoService.salvarProdutoComIngredientes(produto, params);
-        return "redirect:/dashboard";
+        return "redirect:/geladinhos";
     }
     @GetMapping("/novo")
     public String showCadastroForm(Model model) {

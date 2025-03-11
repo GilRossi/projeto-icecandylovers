@@ -104,7 +104,7 @@ function addIngrediente() {
             <div class="col-5">
                 <input type="number" step="0.1" class="form-control"
                        name="ingredientes[${index}].quantidade"
-                       placeholder="Quantidade (gramas)" required
+                       placeholder="Quantidade" required
                        onchange="updateCusto(this)">
             </div>
             <div class="col-2">
@@ -115,6 +115,29 @@ function addIngrediente() {
     `;
 
     container.insertAdjacentHTML('beforeend', newIngrediente);
+}
+
+// Função para calcular o custo total
+function calcularTotalCusto() {
+    let total = 0;
+
+    // Custo dos ingredientes
+    document.querySelectorAll('.ingrediente-item').forEach(row => {
+        const custo = parseFloat(row.dataset.custo) || 0;
+        total += custo;
+    });
+
+    // Custo da água
+    const custoAgua = parseFloat(document.querySelector("[name='precoCusto']").value) || 0;
+    total += custoAgua;
+
+    // Custo do gás
+    const horasGas = parseFloat(document.querySelector("[name='horasGas']").value) || 0;
+    const taxaGas = parseFloat(document.getElementById('taxaGas').value) || 0;
+    total += horasGas * taxaGas;
+
+    // Atualiza o campo
+    document.querySelector("[name='precoCusto']").value = total.toFixed(2);
 }
 
 function removeIngrediente(element) {
@@ -177,40 +200,22 @@ function toggleCamposAgua() {
 
 // Calcula o custo da água baseada na seleção e na quantidade
 function calcularCustoAgua() {
-    const fonteAgua = document.querySelector("[name='fonteAgua']").value;
     let custoAgua = 0;
+    const taxaAgua = parseFloat(document.getElementById("taxaAgua").value) || 0;
 
-    if (fonteAgua === "GALAO") {
+    if (document.getElementById("aguaGalaoCheck").checked) {
         const quantidadeGaloes = parseFloat(document.querySelector("[name='quantidadeGaloes']").value) || 0;
-        const precoGalao = parseFloat(document.getElementById("taxaAgua").value) || 0;
-        custoAgua = quantidadeGaloes * precoGalao;
-    } else if (fonteAgua === "TORNEIRA") {
-        const metrosCubicos = parseFloat(document.querySelector("[name='metrosCubicosAgua']").value) || 0;
-        const precoTorneira = parseFloat(document.getElementById("taxaAgua").value) || 0;
-        custoAgua = metrosCubicos * precoTorneira;
+        custoAgua += quantidadeGaloes * taxaAgua;
     }
 
-    // Atualiza o campo de custo total
-    document.querySelector("[name='precoCusto']").value = custoAgua.toFixed(2);
+    if (document.getElementById("aguaTorneiraCheck").checked) {
+        const metrosCubicos = parseFloat(document.querySelector("[name='metrosCubicosAgua']").value) || 0;
+        custoAgua += metrosCubicos * taxaAgua;
+    }
+
+    // Chama o cálculo total
+    calcularTotalCusto();
 }
-document.addEventListener("DOMContentLoaded", function () {
-    toggleCamposAgua();
-    calcularCustoAgua();
-
-    // Monitora mudanças nos checkboxes da fonte de água
-    document.querySelectorAll("[name='fonteAgua']").forEach(checkbox => {
-        checkbox.addEventListener("change", function () {
-            toggleCamposAgua();
-            calcularCustoAgua();
-        });
-    });
-
-    // Monitora entrada de valores nos campos de quantidade de água
-    document.querySelectorAll("[name='quantidadeGaloes'], [name='metrosCubicosAgua']").forEach(input => {
-        input.addEventListener("input", calcularCustoAgua);
-    });
-});
-
 // Alterna exibição dos campos conforme os checkboxes marcados
 function toggleCamposAgua() {
     const aguaGalaoCheck = document.getElementById("aguaGalaoCheck").checked;
@@ -241,14 +246,15 @@ function calcularCustoAgua() {
 function salvarNovoIngrediente() {
     const nome = document.getElementById('novoIngredienteNome').value;
     const custo = parseFloat(document.getElementById('novoIngredienteCusto').value);
+    const estoque = parseFloat(document.getElementById('novoIngredienteEstoque').value);
+    const unidade = document.getElementById('novoIngredienteUnidade').value;
 
-    if (!nome || isNaN(custo)) {
+    if (!nome || isNaN(custo) || isNaN(estoque) || !unidade) {
         alert('Preencha todos os campos corretamente!');
         return;
     }
 
-    // Mostra feedback de carregamento
-    const saveBtn = document.querySelector('#novoIngredienteModal .btn-primary');
+    const saveBtn = document.querySelector('#novoIngredienteModal .btn-ice');
     saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
     saveBtn.disabled = true;
 
@@ -256,23 +262,30 @@ function salvarNovoIngrediente() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').content // Se usar CSRF
+            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').content
         },
-        body: JSON.stringify({ nome: nome, custoPorUnidade: custo })
+        body: JSON.stringify({
+            nome: nome,
+            custoPorUnidade: custo,
+            estoqueInicial: estoque,
+            unidadeMedida: unidade
+        })
     })
     .then(response => {
-        if (!response.ok) throw new Error('Erro no servidor');
+        if (!response.ok) throw new Error('Erro no servidor: ' + response.status);
         return response.json();
     })
     .then(data => {
-        // Atualiza a lista de ingredientes
+        // Atualiza a lista global
         allIngredientes.push(data);
 
         // Atualiza os selects
         document.querySelectorAll('select[th\\:field*="ingrediente.id"]').forEach(select => {
-            const option = new Option(data.nome, data.id);
+            const option = document.createElement('option');
+            option.value = data.id;
+            option.textContent = data.nome;
             option.dataset.custo = data.custoPorUnidade;
-            select.add(option);
+            select.appendChild(option);
         });
 
         // Fecha o modal
@@ -284,7 +297,7 @@ function salvarNovoIngrediente() {
         alert('Erro ao salvar: ' + error.message);
     })
     .finally(() => {
-        saveBtn.innerHTML = 'Salvar';
+        saveBtn.innerHTML = '<i class="bi bi-save2-fill me-2"></i>Salvar';
         saveBtn.disabled = false;
     });
 }

@@ -7,6 +7,7 @@ import java.util.List;
 
 @Entity
 public class Produto {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -17,9 +18,7 @@ public class Produto {
     private Integer estoqueInicial;
 
     @OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProdutoIngrediente> ingredientes = new ArrayList<>();
-
-    private String imagemUrl;
+    private List<ProdutoIngrediente> ingredientes;
 
     @Column(name = "preco_custo")
     private Double precoCusto;
@@ -65,8 +64,17 @@ public class Produto {
     @Column(name = "metros_cubicos_agua")
     private Double metrosCubicosAgua;
 
+    private ProdutoIngredienteId produtoIngredienteId = new ProdutoIngredienteId();
+
     // Getters e Setters
 
+    public ProdutoIngredienteId getProdutoIngredienteId() {
+        return produtoIngredienteId;
+    }
+
+    public void setProdutoIngredienteId(ProdutoIngredienteId produtoIngredienteId) {
+        this.produtoIngredienteId = produtoIngredienteId;
+    }
 
     public String getFonteAgua() {
         return fonteAgua;
@@ -251,15 +259,6 @@ public class Produto {
     public void setHorasProducao(Double horasProducao) {
         this.horasProducao = horasProducao;
     }
-
-    public String getImagemUrl() {
-        return imagemUrl;
-    }
-
-    public void setImagemUrl(String imagemUrl) {
-        this.imagemUrl = imagemUrl;
-    }
-
 
     public Integer getEstoqueInicial() {
         return estoqueInicial;

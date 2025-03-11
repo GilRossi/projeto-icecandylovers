@@ -134,3 +134,11 @@ body {
     background-color: white !important;
     cursor: text;
 }
+
+/* No arquivo style.css */
+.modal-backdrop {
+    z-index: 1040 !important;
+}
+.modal {
+    z-index: 1050 !important;
+}

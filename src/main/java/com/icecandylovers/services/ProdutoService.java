@@ -3,6 +3,7 @@ package com.icecandylovers.services;
 import com.icecandylovers.entities.Ingrediente;
 import com.icecandylovers.entities.Produto;
 import com.icecandylovers.repositories.IngredienteRepository;
+import com.icecandylovers.repositories.ProdutoIngredienteRepository;
 import com.icecandylovers.repositories.ProdutoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,16 +22,19 @@ public class ProdutoService {
 
     private final ProdutoRepository produtoRepository;
     private final IngredienteRepository ingredienteRepository;
-    private final IngredienteService ingredienteService; // Adicione esta linha
+    private final IngredienteService ingredienteService;
+    private final ProdutoIngredienteRepository produtoIngredienteRepository;
 
 
     @Autowired
     public ProdutoService(ProdutoRepository produtoRepository,
                           IngredienteRepository ingredienteRepository,
-                          IngredienteService ingredienteService) {
+                          IngredienteService ingredienteService,
+                          ProdutoIngredienteRepository produtoIngredienteRepository) {
         this.produtoRepository = produtoRepository;
         this.ingredienteRepository = ingredienteRepository;
         this.ingredienteService = ingredienteService;
+        this.produtoIngredienteRepository = produtoIngredienteRepository;
     }
 
     // Operações CRUD básicas
@@ -57,7 +61,10 @@ public class ProdutoService {
                 .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
 
         return produto.getIngredientes().stream()
-                .map(pi -> pi.getIngrediente().getCustoPorUnidade().multiply(pi.getQuantidade()))
+                .map(produtoIngrediente ->
+                        produtoIngrediente.getIngrediente() // Acessa o ingrediente corretamente
+                                .getCustoPorUnidade()
+                                .multiply(produtoIngrediente.getQuantidade()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
@@ -68,9 +75,9 @@ public class ProdutoService {
                 .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
 
         // Atualizar estoque de ingredientes
-        for (ProdutoIngrediente pi : produto.getIngredientes()) {
-            Ingrediente ingrediente = pi.getIngrediente();
-            BigDecimal quantidadeNecessaria = pi.getQuantidade().multiply(BigDecimal.valueOf(quantidadeProduzida));
+        for (ProdutoIngrediente produtoIngrediente : produto.getIngredientes()) {
+            Ingrediente ingrediente = produtoIngrediente.getIngrediente();
+            BigDecimal quantidadeNecessaria = produtoIngrediente.getQuantidade().multiply(BigDecimal.valueOf(quantidadeProduzida));
 
             if (ingrediente.getEstoqueAtual().compareTo(quantidadeNecessaria) < 0) {
                 throw new RuntimeException("Estoque insuficiente para o ingrediente: " + ingrediente.getNome());
@@ -109,28 +116,34 @@ public class ProdutoService {
 
     @Transactional
     public void salvarProdutoComIngredientes(Produto produto, Map<String, String> params) {
+
         List<ProdutoIngrediente> ingredientes = new ArrayList<>();
+
+        Produto savedProduto = produtoRepository.save(produto);
 
         params.keySet().stream()
                 .filter(key -> key.startsWith("ingredientes["))
                 .forEach(key -> {
-                    String index = key.replaceAll("\\D+","");
-                    Long ingredienteId = Long.parseLong(params.get("ingredientes["+index+"].ingrediente.id"));
-                    BigDecimal quantidade = new BigDecimal(params.get("ingredientes["+index+"].quantidade"));
+                    String index = key.replaceAll("\\D+", "");
+                    Long ingredienteId = Long.parseLong(params.get("ingredientes[" + index + "].ingrediente.id"));
+                    BigDecimal quantidade = new BigDecimal(params.get("ingredientes[" + index + "].quantidade"));
 
                     Ingrediente ingrediente = ingredienteService.buscarPorId(ingredienteId)
                             .orElseThrow(() -> new RuntimeException("Ingrediente não encontrado"));
 
                     ProdutoIngrediente pi = new ProdutoIngrediente();
-                    pi.setProduto(produto);
+                    pi.setProduto(savedProduto);
                     pi.setIngrediente(ingrediente);
                     pi.setQuantidade(quantidade);
+
+                    produtoIngredienteRepository.save(pi);
                     ingredientes.add(pi);
                 });
 
-        produto.setIngredientes(ingredientes);
-        produtoRepository.save(produto);
+        savedProduto.setIngredientes(ingredientes);
+        produtoRepository.save(savedProduto);
     }
+
     public int calcularTotalEstoque() {
         return produtoRepository.sumEstoqueAtual();
     }
@@ -143,5 +156,4 @@ public class ProdutoService {
         return produtoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
     }
-
 }

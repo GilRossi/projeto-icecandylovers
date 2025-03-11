@@ -15,9 +15,22 @@ public class Ingrediente {
 
     @Column(precision = 10, scale = 2)
     private BigDecimal custoPorUnidade;
+
+    @Column(precision = 10, scale = 2)
     private BigDecimal estoqueAtual;
 
+    @Column(precision = 10, scale = 2)
+    private BigDecimal estoqueInicial;
+
     // Getters e Setters
+
+    public BigDecimal getEstoqueInicial() {
+        return estoqueInicial;
+    }
+
+    public void setEstoqueInicial(BigDecimal estoqueInicial) {
+        this.estoqueInicial = estoqueInicial;
+    }
 
     public Long getId() {
         return id;

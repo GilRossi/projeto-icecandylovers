@@ -25,4 +25,11 @@ public class IngredienteService {
     public Optional<Ingrediente> buscarPorId(Long id) {
         return ingredienteRepository.findById(id);
     }
+
+    public Ingrediente salvar(Ingrediente ingrediente) {
+        if(ingrediente.getEstoqueAtual() == null) {
+            ingrediente.setEstoqueAtual(ingrediente.getEstoqueInicial());
+        }
+        return ingredienteRepository.save(ingrediente);
+    }
 }
