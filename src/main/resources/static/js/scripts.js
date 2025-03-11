@@ -135,3 +135,105 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 // Atualiza a tabela com o valor convertido de kWh
 document.getElementById('resultadoKwh').textContent = kwh?.toFixed(4) + ' kWh';
+// Adicione um listener para o evento de submit do formulário
+document.querySelector('form').addEventListener('submit', function() {
+    // Força a conversão final antes de enviar
+    const kwh = document.getElementById('kwh').value;
+    // Garante que o valor está correto
+    if (!kwh) {
+        alert('Preencha os campos de energia antes de salvar.');
+        event.preventDefault();
+    }
+});
+
+function toggleCamposAgua() {
+    const fonteAgua = document.querySelector('[th\\:field="*{fonteAgua}"]').value;
+    document.getElementById('aguaGalaoCampos').classList.toggle('d-none', fonteAgua !== 'GALAO');
+    document.getElementById('aguaTorneiraCampos').classList.toggle('d-none', fonteAgua !== 'TORNEIRA');
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    toggleCamposAgua();
+    calcularCustoAgua();
+
+    // Monitora mudanças na seleção da fonte de água
+    document.querySelector("[name='fonteAgua']").addEventListener("change", function () {
+        toggleCamposAgua();
+        calcularCustoAgua();
+    });
+
+    // Monitora entrada de valores nos campos de quantidade de água
+    document.querySelectorAll("[name='quantidadeGaloes'], [name='metrosCubicosAgua']").forEach(input => {
+        input.addEventListener("input", calcularCustoAgua);
+    });
+});
+
+// Alterna exibição dos campos de acordo com a fonte de água
+function toggleCamposAgua() {
+    const fonteAgua = document.querySelector("[name='fonteAgua']").value;
+    document.getElementById("aguaGalaoCampos").classList.toggle("d-none", fonteAgua !== "GALAO");
+    document.getElementById("aguaTorneiraCampos").classList.toggle("d-none", fonteAgua !== "TORNEIRA");
+}
+
+// Calcula o custo da água baseada na seleção e na quantidade
+function calcularCustoAgua() {
+    const fonteAgua = document.querySelector("[name='fonteAgua']").value;
+    let custoAgua = 0;
+
+    if (fonteAgua === "GALAO") {
+        const quantidadeGaloes = parseFloat(document.querySelector("[name='quantidadeGaloes']").value) || 0;
+        const precoGalao = parseFloat(document.getElementById("taxaAgua").value) || 0;
+        custoAgua = quantidadeGaloes * precoGalao;
+    } else if (fonteAgua === "TORNEIRA") {
+        const metrosCubicos = parseFloat(document.querySelector("[name='metrosCubicosAgua']").value) || 0;
+        const precoTorneira = parseFloat(document.getElementById("taxaAgua").value) || 0;
+        custoAgua = metrosCubicos * precoTorneira;
+    }
+
+    // Atualiza o campo de custo total
+    document.querySelector("[name='precoCusto']").value = custoAgua.toFixed(2);
+}
+document.addEventListener("DOMContentLoaded", function () {
+    toggleCamposAgua();
+    calcularCustoAgua();
+
+    // Monitora mudanças nos checkboxes da fonte de água
+    document.querySelectorAll("[name='fonteAgua']").forEach(checkbox => {
+        checkbox.addEventListener("change", function () {
+            toggleCamposAgua();
+            calcularCustoAgua();
+        });
+    });
+
+    // Monitora entrada de valores nos campos de quantidade de água
+    document.querySelectorAll("[name='quantidadeGaloes'], [name='metrosCubicosAgua']").forEach(input => {
+        input.addEventListener("input", calcularCustoAgua);
+    });
+});
+
+// Alterna exibição dos campos conforme os checkboxes marcados
+function toggleCamposAgua() {
+    const aguaGalaoCheck = document.getElementById("aguaGalaoCheck").checked;
+    const aguaTorneiraCheck = document.getElementById("aguaTorneiraCheck").checked;
+
+    document.getElementById("aguaGalaoCampos").classList.toggle("d-none", !aguaGalaoCheck);
+    document.getElementById("aguaTorneiraCampos").classList.toggle("d-none", !aguaTorneiraCheck);
+}
+
+// Calcula o custo da água com base nos checkboxes marcados
+function calcularCustoAgua() {
+    let custoAgua = 0;
+    const taxaAgua = parseFloat(document.getElementById("taxaAgua").value) || 0;
+
+    if (document.getElementById("aguaGalaoCheck").checked) {
+        const quantidadeGaloes = parseFloat(document.querySelector("[name='quantidadeGaloes']").value) || 0;
+        custoAgua += quantidadeGaloes * taxaAgua;
+    }
+
+    if (document.getElementById("aguaTorneiraCheck").checked) {
+        const metrosCubicos = parseFloat(document.querySelector("[name='metrosCubicosAgua']").value) || 0;
+        custoAgua += metrosCubicos * taxaAgua;
+    }
+
+    document.querySelector("[name='precoCusto']").value = custoAgua.toFixed(2);
+}

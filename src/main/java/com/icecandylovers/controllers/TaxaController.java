@@ -21,13 +21,70 @@ public class TaxaController {
     @GetMapping("/editar")
     public String editarTaxas(Model model) {
         Taxa taxas = taxaService.obterUltimasTaxas();
+
+        // Verifica se o kwh existe e não é zero
+        if (taxas.getKwh() != null && taxas.getKwh() != 0) {
+            taxas.setResultadoQuadrichama(taxas.getQuadrichama() / taxas.getKwh());
+            taxas.setResultadoRapido(taxas.getRapido() / taxas.getKwh());
+            taxas.setResultadoSemirapido(taxas.getSemirapido() / taxas.getKwh());
+        } else {
+            // Define resultados como null para evitar divisão por zero
+            taxas.setResultadoQuadrichama(null);
+            taxas.setResultadoRapido(null);
+            taxas.setResultadoSemirapido(null);
+        }
+
         model.addAttribute("taxas", taxas);
         return "cadastro-taxas";
     }
 
-    @PostMapping("/salvar")
-    public String salvarTaxas(@ModelAttribute("taxas") Taxa taxas) {
-        taxaService.salvarTaxas(taxas);
+    public String salvarGas(@ModelAttribute("taxas") Taxa novasTaxas) {
+        Taxa taxasAtuais = taxaService.obterUltimasTaxas();
+
+        // Atualiza apenas campos relacionados ao Gás
+        taxasAtuais.setTaxaGas(novasTaxas.getTaxaGas());
+        taxasAtuais.setQuadrichama(novasTaxas.getQuadrichama());
+        taxasAtuais.setRapido(novasTaxas.getRapido());
+        taxasAtuais.setSemirapido(novasTaxas.getSemirapido());
+        taxasAtuais.setKcal(novasTaxas.getKcal());
+        taxasAtuais.setMj(novasTaxas.getMj());
+        taxasAtuais.setKwh(novasTaxas.getKwh());
+
+        taxaService.salvarTaxas(taxasAtuais);
+        return "redirect:/taxas/editar";
+    }
+
+    @PostMapping("/salvar/agua")
+    public String salvarAgua(@ModelAttribute("taxas") Taxa novasTaxas) {
+        System.out.println("Recebendo taxa de água: " + novasTaxas.getAgua());
+
+        Taxa taxasAtuais = taxaService.obterUltimasTaxas();
+
+        if (taxasAtuais == null) {
+            taxasAtuais = new Taxa();
+        }
+
+        if (novasTaxas.getAgua() == null) {
+            System.out.println("Erro: O campo 'agua' está nulo!");
+            return "redirect:/taxas/editar?erro=aguaNula";
+        }
+
+        taxasAtuais.setAgua(novasTaxas.getAgua());
+        taxasAtuais.setPrecoGalao(novasTaxas.getPrecoGalao());
+        taxasAtuais.setCapacidadeGalao(novasTaxas.getCapacidadeGalao());
+        taxasAtuais.setAguaTorneira(novasTaxas.getAguaTorneira());
+
+        taxaService.salvarTaxas(taxasAtuais);
+
+        return "redirect:/taxas/editar";
+    }
+
+
+    @PostMapping("/salvar/energia")
+    public String salvarEnergia(@ModelAttribute("taxas") Taxa novasTaxas) {
+        Taxa taxasAtuais = taxaService.obterUltimasTaxas();
+        taxasAtuais.setEnergia(novasTaxas.getEnergia()); // Atualiza apenas energia
+        taxaService.salvarTaxas(taxasAtuais);
         return "redirect:/taxas/editar";
     }
 }

@@ -55,95 +55,150 @@
                     <h4>⚙️ Configuração de Taxas</h4>
                 </div>
                 <div class="card-body">
-                    <form th:action="@{/taxas/salvar}" method="post" th:object="${taxas}">
-                        <!-- Seleção do Tipo de Gás -->
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-12">
-                                <label class="form-label">Tipo de Gás</label>
-                                <select class="form-select" id="tipoGas" onchange="toggleCamposGas()" required>
-                                    <option value="">Selecione...</option>
-                                    <option value="GN" th:selected="${taxas.taxaGas == 5.00}">Gás Natural (GN)</option>
-                                    <option value="GLP" th:selected="${taxas.taxaGas == 3.50}">Gás de Botijão (GLP)</option>
-                                </select>
-                                <div class="mt-2">
-                                    <span id="precoGasGN" class="badge bg-success d-none">Preço GN: R$ 5,00/kg</span>
-                                    <span id="precoGasGLP" class="badge bg-warning text-dark d-none">Preço GLP: R$ 3,50/kg</span>
+
+                    <!-- Seção Gás -->
+                    <div class="card mb-4 border-primary">
+                        <div class="card-header text-white" style="background-color: #9370DB;">
+                            <h5 class="mb-0"><i class="bi bi-fire me-2"></i>Configurações de Gás</h5>
+                        </div>
+                        <div class="card-body">
+                            <form th:action="@{/taxas/salvar/gas}" method="post" th:object="${taxas}">
+                                <!-- Seleção do Tipo de Gás -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Tipo de Gás</label>
+                                        <select class="form-select" id="tipoGas" onchange="toggleCamposGas()" required>
+                                            <option value="">Selecione...</option>
+                                            <option value="GN" th:selected="${taxas.taxaGas == 5.00}">Gás Natural (GN)
+                                            </option>
+                                            <option value="GLP" th:selected="${taxas.taxaGas == 3.50}">Gás de Botijão
+                                                (GLP)
+                                            </option>
+                                        </select>
+                                        <div class="mt-2">
+                                            <span id="precoGasGN"
+                                                  class="badge bg-success d-none">Preço GN: R$ 5,00/kg</span>
+                                            <span id="precoGasGLP" class="badge bg-warning text-dark d-none">Preço GLP: R$ 3,50/kg</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <!-- Taxa do Gás -->
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-4">
-                                <label class="form-label">Taxa de Gás (R$)</label>
-                                <input type="number" step="0.01" class="form-control"
-                                       th:field="*{taxaGas}" id="taxaGas" required>
-                            </div>
-                        </div>
+                                <!-- Taxa do Gás -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Taxa de Gás (R$)</label>
+                                        <input type="number" step="0.01" class="form-control"
+                                               th:field="*{taxaGas}" id="taxaGas" required>
+                                    </div>
+                                </div>
 
-                        <!-- Campos de Energia -->
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-4">
-                                <label class="form-label">Poder Calórico (kcal)</label>
-                                <input type="number" step="0.0001" class="form-control"
-                                       th:field="*{kcal}" id="kcal"
-                                       onchange="converterEnergia(event)">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">MJ</label>
-                                <input type="number" step="0.0001" class="form-control"
-                                       th:field="*{mj}" id="mj"
-                                       onchange="converterEnergia(event)">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">kWh</label>
-                                <input type="number" step="0.0001" class="form-control"
-                                       th:field="*{kwh}" id="kwh"
-                                       onchange="converterEnergia(event)">
-                            </div>
-                        </div>
+                                <!-- Campos de Energia -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Poder Calórico (kcal)</label>
+                                        <input type="number" step="0.0001" class="form-control"
+                                               th:field="*{kcal}" id="kcal"
+                                               onchange="converterEnergia(event)">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">MJ</label>
+                                        <input type="number" step="0.0001" class="form-control"
+                                               th:field="*{mj}" id="mj"
+                                               onchange="converterEnergia(event)">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">kWh</label>
+                                        <input type="number" step="0.0001" class="form-control"
+                                               th:field="*{kwh}" id="kwh"
+                                               onchange="converterEnergia(event)">
+                                    </div>
+                                </div>
 
-                        <!-- Queimadores -->
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-4">
-                                <label class="form-label">Quadrichama (kWh)</label> <!-- Alterado de R$/h para kWh -->
-                                <input type="number" step="0.01" class="form-control"
-                                       th:field="*{quadrichama}" id="quadrichama" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Rápido (kWh)</label> <!-- Alterado -->
-                                <input type="number" step="0.01" class="form-control"
-                                       th:field="*{rapido}" id="rapido" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Semirápido (kWh)</label> <!-- Alterado -->
-                                <input type="number" step="0.01" class="form-control"
-                                       th:field="*{semirapido}" id="semirapido" required>
-                            </div>
+                                <!-- Queimadores -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Quadrichama (kWh)</label>
+                                        <!-- Alterado de R$/h para kWh -->
+                                        <input type="number" step="0.01" class="form-control"
+                                               th:field="*{quadrichama}" id="quadrichama" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Rápido (kWh)</label> <!-- Alterado -->
+                                        <input type="number" step="0.01" class="form-control"
+                                               th:field="*{rapido}" id="rapido" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Semirápido (kWh)</label> <!-- Alterado -->
+                                        <input type="number" step="0.01" class="form-control"
+                                               th:field="*{semirapido}" id="semirapido" required>
+                                    </div>
+                                </div>
+                                <div class="d-grid gap-2 mt-4">
+                                    <button type="submit" class="btn btn-ice">Salvar Configurações de Gás</button>
+                                </div>
+                            </form>
                         </div>
+                    </div>
 
-                        <!-- Adicione esta seção após o bloco "Queimadores" -->
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label">Água (R$/m³)</label>
-                                <input type="number" step="0.01" class="form-control"
-                                       th:field="*{agua}" id="agua" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Energia (R$/kWh)</label>
-                                <input type="number" step="0.01" class="form-control"
-                                       th:field="*{energia}" id="energia" required>
-                            </div>
+                    <!-- Seção Água -->
+                    <div class="card mb-4 border-success">
+                        <div class="card-header text-white" style="background-color: #9370DB;">
+                            <h5 class="mb-0"><i class="bi bi-droplet me-2"></i>Configurações de Água</h5>
                         </div>
+                        <div class="card-body">
+                            <form th:action="@{/taxas/salvar/agua}" method="post" th:object="${taxas}">
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Preço do Galão (R$)</label>
+                                        <input type="number" step="0.01" class="form-control" th:field="*{precoGalao}"
+                                               required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Capacidade do Galão (Litros)</label>
+                                        <input type="number" step="0.1" class="form-control"
+                                               th:field="*{capacidadeGalao}" required>
+                                    </div>
+                                </div>
 
-                        <!-- Botão de Envio -->
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-ice">
-                                <i class="bi bi-cart-check"></i>
-                                Salvar Taxas
-                            </button>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Água de Rede (R$/m³)</label>
+                                        <input type="number" step="0.01" class="form-control" th:field="*{agua}"
+                                               required>
+                                    </div>
+
+                                    <div class="d-grid gap-2 mt-4">
+                                        <button type="submit" class="btn btn-ice">
+                                            <i class="bi bi-save me-2"></i>Salvar Configurações
+                                        </button>
+                                    </div>
+                            </form>
                         </div>
-                    </form>
+                    </div>
+
+                    <!-- Seção Energia -->
+                    <div class="card border-warning">
+                        <div class="card-header text-dark" style="background-color: #9370DB;">
+                            <h5 class="mb-0"><i class="bi bi-lightning-charge me-2"></i>Configurações de Energia</h5>
+                        </div>
+                        <div class="card-body">
+                            <form th:action="@{/taxas/salvar/energia}" method="post" th:object="${taxas}">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Energia (R$/kWh)</label>
+                                        <input type="number" step="0.01" class="form-control"
+                                               th:field="*{energia}" id="energia" required>
+                                    </div>
+                                </div>
+                                <div class="d-grid gap-2 mt-4">
+                                    <button type="submit" class="btn btn-ice">
+                                        <i class="bi bi-save me-2"></i>Salvar Energia
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                     <!-- Tabelas de Resultados Salvos -->
                     <div class="mt-5">
                         <!-- Tabela de Gás -->
@@ -164,17 +219,17 @@
                                     <tr>
                                         <td>Quadrichama</td>
                                         <td th:text="${taxas.quadrichama} + ' kWh'"></td>
-                                        <td th:text="${taxas.kwh} + ' kWh'"></td>
+                                        <td th:text="${taxas.resultadoQuadrichama != null} ? ${#numbers.formatDecimal(taxas.resultadoQuadrichama, 1, 4)} + ' kWh' : 'N/A'"></td>
                                     </tr>
                                     <tr>
                                         <td>Rápido</td>
                                         <td th:text="${taxas.rapido} + ' kWh'"></td>
-                                        <td th:text="${taxas.kwh} + ' kWh'"></td>
+                                        <td th:text="${taxas.resultadoRapido != null} ? ${#numbers.formatDecimal(taxas.resultadoRapido, 1, 4)} + ' kWh' : 'N/A'"></td>
                                     </tr>
                                     <tr>
                                         <td>Semirápido</td>
                                         <td th:text="${taxas.semirapido} + ' kWh'"></td>
-                                        <td><span id="resultadoKwh"></span></td>
+                                        <td th:text="${taxas.resultadoSemirapido != null} ? ${#numbers.formatDecimal(taxas.resultadoSemirapido, 1, 4)} + ' kWh' : 'N/A'"></td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -189,9 +244,18 @@
                             <div class="card-body">
                                 <table class="table table-striped">
                                     <tr>
-                                        <th>Custo da Água (R$/m³)</th>
+                                        <th>Água de Rede (R$/m³)</th>
                                         <td th:text="${taxas.agua}"></td>
                                     </tr>
+                                    <tr>
+                                        <th>Preço do Galão (R$)</th>
+                                        <td th:text="${taxas.precoGalao}"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Capacidade do Galão (L)</th>
+                                        <td th:text="${taxas.capacidadeGalao}"></td>
+                                    </tr>
+                                    <tr>
                                 </table>
                             </div>
                         </div>

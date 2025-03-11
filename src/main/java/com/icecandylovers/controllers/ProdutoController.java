@@ -1,5 +1,6 @@
 package com.icecandylovers.controllers;
 
+import com.icecandylovers.entities.Produto;
 import com.icecandylovers.services.ProdutoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

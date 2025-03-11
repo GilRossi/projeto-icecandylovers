@@ -38,7 +38,11 @@ public class TaxaService {
         this.taxas.setKcal(novasTaxas.getKcal());
         this.taxas.setMj(novasTaxas.getMj());
 
-        taxaRepository.save(this.taxas);
+        this.taxas.setPrecoGalao(novasTaxas.getPrecoGalao());
+        this.taxas.setCapacidadeGalao(novasTaxas.getCapacidadeGalao());
+        this.taxas.setAguaTorneira(novasTaxas.getAguaTorneira());
+
+        taxaRepository.save(novasTaxas);
     }
 
     // Obtém a última taxa cadastrada

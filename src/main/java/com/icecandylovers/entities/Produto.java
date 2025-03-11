@@ -57,8 +57,40 @@ public class Produto {
     @Column(name = "uso_semirapido")
     private boolean usoSemirapido;
 
+    //Água
+    @Column(name = "fonte_agua")
+    private String fonteAgua;
+    @Column(name = "quantidade_galoes")
+    private Double quantidadeGaloes;
+    @Column(name = "metros_cubicos_agua")
+    private Double metrosCubicosAgua;
+
     // Getters e Setters
 
+
+    public String getFonteAgua() {
+        return fonteAgua;
+    }
+
+    public void setFonteAgua(String fonteAgua) {
+        this.fonteAgua = fonteAgua;
+    }
+
+    public Double getQuantidadeGaloes() {
+        return quantidadeGaloes;
+    }
+
+    public void setQuantidadeGaloes(Double quantidadeGaloes) {
+        this.quantidadeGaloes = quantidadeGaloes;
+    }
+
+    public Double getMetrosCubicosAgua() {
+        return metrosCubicosAgua;
+    }
+
+    public void setMetrosCubicosAgua(Double metrosCubicosAgua) {
+        this.metrosCubicosAgua = metrosCubicosAgua;
+    }
 
     public boolean isUsoQuadrichama() {
         return usoQuadrichama;

@@ -37,9 +37,73 @@ public class Taxa {
     @Column(name = "kwh")
     private Double kwh;
 
+    @Transient
+    private Double resultadoQuadrichama;
+
+    @Transient
+    private Double resultadoRapido;
+
+    @Transient
+    private Double resultadoSemirapido;
+
+    @Column(name = "preco_galao")
+    private Double precoGalao;
+
+    @Column(name = "capacidade_galao")
+    private Double capacidadeGalao;
+
+    @Column(name = "agua_torneira")
+    private Double aguaTorneira;
+
 
     //Getters and Setters
+    public Double getPrecoGalao() {
+        return precoGalao;
+    }
 
+    public void setPrecoGalao(Double precoGalao) {
+        this.precoGalao = precoGalao;
+    }
+
+    public Double getCapacidadeGalao() {
+        return capacidadeGalao;
+    }
+
+    public void setCapacidadeGalao(Double capacidadeGalao) {
+        this.capacidadeGalao = capacidadeGalao;
+    }
+
+    public Double getAguaTorneira() {
+        return aguaTorneira;
+    }
+
+    public void setAguaTorneira(Double aguaTorneira) {
+        this.aguaTorneira = aguaTorneira;
+    }
+
+    public Double getResultadoQuadrichama() {
+        return resultadoQuadrichama;
+    }
+
+    public void setResultadoQuadrichama(Double resultadoQuadrichama) {
+        this.resultadoQuadrichama = resultadoQuadrichama;
+    }
+
+    public Double getResultadoRapido() {
+        return resultadoRapido;
+    }
+
+    public void setResultadoRapido(Double resultadoRapido) {
+        this.resultadoRapido = resultadoRapido;
+    }
+
+    public Double getResultadoSemirapido() {
+        return resultadoSemirapido;
+    }
+
+    public void setResultadoSemirapido(Double resultadoSemirapido) {
+        this.resultadoSemirapido = resultadoSemirapido;
+    }
 
     public Double getTaxaGas() {
         return taxaGas;
