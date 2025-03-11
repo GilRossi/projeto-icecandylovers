@@ -28,6 +28,31 @@
     </div>
 </nav>
 
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-2 sidebar p-3">
+            <div class="d-flex flex-column">
+                <div class="mb-4">
+                    <h5 class="text-primary fw-bold">Menu</h5>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Estoque</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/vendas/nova">Vendas</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/taxas/editar">Taxas</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
 <!-- Conteúdo Principal -->
 <div class="col-lg-10 p-4">
     <div class="card card-cadastro">
@@ -76,9 +101,9 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <small>Adicione os ingredientes utilizados na receita</small>
-                            <button type="button" class="btn btn-sm btn-outline-dark"
+                            <button type="button" class="btn btn-sm btn-ice"
                                     data-bs-toggle="modal" data-bs-target="#novoIngredienteModal">
-                                <i class="bi bi-plus-lg me-2"></i>Novo Ingrediente
+                                <i class="bi bi-plus-circle me-2"></i>Novo Ingrediente
                             </button>
                         </div>
 
@@ -111,7 +136,7 @@
                             </div>
                         </div>
 
-                        <button type="button" class="btn btn-outline-warning btn-sm mt-3"
+                        <button type="button" class="btn btn-sm btn-ice"
                                 onclick="addIngrediente()">
                             <i class="bi bi-plus-circle me-2"></i>Adicionar Linha
                         </button>
