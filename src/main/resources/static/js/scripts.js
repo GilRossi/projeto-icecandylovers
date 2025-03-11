@@ -247,32 +247,44 @@ function salvarNovoIngrediente() {
         return;
     }
 
+    // Mostra feedback de carregamento
+    const saveBtn = document.querySelector('#novoIngredienteModal .btn-primary');
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
+    saveBtn.disabled = true;
+
     fetch('/ingredientes/salvar', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').content // Se usar CSRF
         },
         body: JSON.stringify({ nome: nome, custoPorUnidade: custo })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error('Erro no servidor');
+        return response.json();
+    })
     .then(data => {
-        // Atualiza a lista global de ingredientes
+        // Atualiza a lista de ingredientes
         allIngredientes.push(data);
 
-        // Atualiza todos os selects de ingredientes
+        // Atualiza os selects
         document.querySelectorAll('select[th\\:field*="ingrediente.id"]').forEach(select => {
-            const option = document.createElement('option');
-            option.value = data.id;
-            option.textContent = data.nome;
+            const option = new Option(data.nome, data.id);
             option.dataset.custo = data.custoPorUnidade;
-            select.appendChild(option);
+            select.add(option);
         });
 
-        $('#novoIngredienteModal').modal('hide');
+        // Fecha o modal
+        bootstrap.Modal.getInstance(document.getElementById('novoIngredienteModal')).hide();
         document.getElementById('formNovoIngrediente').reset();
     })
     .catch(error => {
         console.error('Erro:', error);
-        alert('Erro ao salvar ingrediente!');
+        alert('Erro ao salvar: ' + error.message);
+    })
+    .finally(() => {
+        saveBtn.innerHTML = 'Salvar';
+        saveBtn.disabled = false;
     });
 }

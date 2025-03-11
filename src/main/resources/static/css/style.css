@@ -73,6 +73,17 @@ body {
     background: var(--primary-color);
     color: white;
 }
+.btn-secondary-icl{
+    background: var(--primary-color);
+    color: white;
+    border-radius: 25px;
+    padding: 8px 25px;
+    border: none;
+}
+.btn-secondary-icl:hover{
+    background: var(--secondary-color);
+    color: white
+}
 
 @media (max-width: 576px) {
     .mobile-text-md {
