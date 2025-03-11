@@ -28,188 +28,191 @@
     </div>
 </nav>
 
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-lg-2 sidebar p-3">
-            <div class="d-flex flex-column">
-                <div class="mb-4">
-                    <h5 class="text-primary fw-bold">Menu</h5>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" href="/dashboard">Dashboard</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Estoque</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/vendas/nova">Vendas</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/taxas/editar">Taxas</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+<!-- Conteúdo Principal -->
+<div class="col-lg-10 p-4">
+    <div class="card card-cadastro">
+        <div class="card-header text-white" style="background-color:#9370DB;">
+            <h4>🍦 Cadastro de Geladinho</h4>
         </div>
+        <div class="card-body">
+            <form th:action="@{/geladinhos/salvar}" method="post" th:object="${produto}">
+                <input type="hidden" th:field="*{id}">
 
-        <!-- Conteúdo Principal -->
-        <div class="col-lg-10 p-4">
-            <div class="card card-cadastro">
-                <div class="card-header text-white" style="background-color:#9370DB;">
-                    <h4>🍦 Cadastro de Geladinho</h4>
-                </div>
-                <div class="card-body">
-                    <form th:action="@{/geladinhos/salvar}" method="post" th:object="${produto}">
-                        <input type="hidden" th:field="*{id}">
+                <!-- Seção: Informações Básicas -->
+                <div class="card mb-4 primary-color">
+                    <div class="card-header text-white" style="background-color:#9370DB;">
+                        <h5 class="mb-0">Informações Básicas</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <!-- Sabor -->
+                            <div class="col-md-12">
+                                <label class="form-label">Sabor do Geladinho</label>
+                                <input type="text" class="form-control" th:field="*{sabor}" required>
+                            </div>
 
-                        <!-- Campo Sabor -->
-                        <div class="mb-3">
-                            <label class="form-label">Sabor</label>
-                            <input type="text" class="form-control" th:field="*{sabor}" required>
-                        </div>
-
-                        <!-- Preço e Estoque -->
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
+                            <!-- Estoque -->
+                            <div class="col-md-4">
                                 <label class="form-label">Estoque Inicial</label>
                                 <input type="number" class="form-control" th:field="*{estoqueInicial}" required>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label">Estoque Atual</label>
                                 <input type="number" class="form-control" th:field="*{estoqueAtual}" required>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Preço de Custo (Calculado)</label>
+                            <div class="col-md-4">
+                                <label class="form-label">Preço de Custo</label>
                                 <input type="number" step="0.01" class="form-control" name="precoCusto" readonly>
                             </div>
                         </div>
-
-                        <!-- Horas de Utilidades -->
-                        <div class="row g-3 mb-4">
-
-                            <!-- Seção Água -->
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-12">
-                                    <label class="form-label">Selecione a Fonte de Água:</label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="aguaGalaoCheck" name="fonteAgua" value="GALAO" onchange="toggleCamposAgua()">
-                                        <label class="form-check-label" for="aguaGalaoCheck">Água de Galão</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="aguaTorneiraCheck" name="fonteAgua" value="TORNEIRA" onchange="toggleCamposAgua()">
-                                        <label class="form-check-label" for="aguaTorneiraCheck">Água da Torneira</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Campos Condicionais -->
-                            <div id="aguaGalaoCampos" class="row g-3 mb-4 d-none">
-                                <div class="col-md-6">
-                                    <label class="form-label">Quantidade de Litros</label>
-                                    <input type="number" step="0.1" class="form-control" name="quantidadeGaloes" oninput="calcularCustoAgua()">
-                                </div>
-                            </div>
-
-                            <div id="aguaTorneiraCampos" class="row g-3 mb-4 d-none">
-                                <div class="col-md-6">
-                                    <label class="form-label">Metros Cúbicos (m³)</label>
-                                    <input type="number" step="0.1" class="form-control" name="metrosCubicosAgua" oninput="calcularCustoAgua()">
-                                </div>
-                            </div>
-
-                            <!-- Seção de Queimadores -->
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-12">
-                                    <label class="form-label">Selecione os Queimadores Utilizados:</label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox"
-                                               id="quadrichamaCheck" name="queimadores"
-                                               value="quadrichama" th:checked="${produto.usoQuadrichama}"
-                                               onchange="calcularTotalCusto()">
-                                        <label class="form-check-label" for="quadrichamaCheck">Quadrichama</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox"
-                                               id="rapidoCheck" name="queimadores"
-                                               value="rapido" th:checked="${produto.usoRapido}"
-                                               onchange="calcularTotalCusto()">
-                                        <label class="form-check-label" for="rapidoCheck">Rápido</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox"
-                                               id="semirapidoCheck" name="queimadores"
-                                               value="semirapido" th:checked="${produto.usoSemirapido}"
-                                               onchange="calcularTotalCusto()">
-                                        <label class="form-check-label" for="semirapidoCheck">Semirápido</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Campos Ocultos para Taxas dos Queimadores (Recebidos do Backend) -->
-                            <input type="hidden" id="taxaQuadrichama" th:value="${taxaQuadrichama}">
-                            <input type="hidden" id="taxaRapido" th:value="${taxaRapido}">
-                            <input type="hidden" id="taxaSemirapido" th:value="${taxaSemirapido}">
-                            <div class="col-md-4">
-                                <label class="form-label">Horas de Gás</label>
-                                <input type="number" step="0.1" class="form-control"
-                                       th:field="*{horasGas}" required oninput="calcularTotalCusto()">
-                            </div>
-                        </div>
-
-                        <!-- Campos ocultos para taxas (vinculados ao backend) -->
-                        <input type="hidden" th:field="*{taxaAgua}" id="taxaAgua">
-                        <input type="hidden" th:field="*{taxaGas}" id="taxaGas">
-                        <input type="hidden" th:field="*{taxaEnergia}" id="taxaEnergia">
-
-                        <!-- Seção de Ingredientes -->
-                        <div class="mb-4">
-                            <label class="form-label">Ingredientes</label>
-                            <div id="ingredientes-container">
-
-                                <!-- Item de Ingrediente (Loop para edição) -->
-                                <div class="ingrediente-item row g-2"
-                                     th:each="prodIngrediente, stat : *{ingredientes}"
-                                     th:object="${prodIngrediente}">
-                                    <div class="col-5">
-                                        <select class="form-select"
-                                                th:field="*{ingrediente.id}">
-                                            <option value="">Selecione um ingrediente</option>
-                                            <option th:each="ing : ${allIngredientes}"
-                                                    th:value="${ing.id}"
-                                                    th:text="${ing.nome}"
-                                                    th:data-custo="${ing.custoPorUnidade}">
-                                            </option>
-                                        </select>
-                                    </div>
-                                    <div class="col-5">
-                                        <input type="number" step="0.1" class="form-control quantidade-input"
-                                               th:field="*{quantidade}"
-                                               placeholder="Quantidade (gramas)" required
-                                               onchange="updateCusto(this)">
-                                    </div>
-                                    <div class="col-2">
-                                        <i class="bi bi-x-circle-fill remove-ingrediente"
-                                           onclick="removeIngrediente(this)"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="button" class="btn btn-secondary btn-sm mt-2"
-                                    onclick="addIngrediente()">
-                                <i class="bi bi-plus"></i> Adicionar Ingrediente
-                            </button>
-                        </div>
-
-                        <!-- Botão de Submit -->
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-ice">
-                                <i class="bi bi-cart-check"></i>
-                                Salvar Gelinho
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
+
+                <!-- Seção: Ingredientes -->
+                <div class="card mb-4 primary-color">
+                    <div class="card-header text-white" style="background-color:#9370DB;">
+                        <h5 class="mb-0">Ingredientes</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <small>Adicione os ingredientes utilizados na receita</small>
+                            <button type="button" class="btn btn-sm btn-outline-dark"
+                                    data-bs-toggle="modal" data-bs-target="#novoIngredienteModal">
+                                <i class="bi bi-plus-lg me-2"></i>Novo Ingrediente
+                            </button>
+                        </div>
+
+                        <div id="ingredientes-container" style="max-height: 300px; overflow-y: auto;">
+                            <!-- Item de Ingrediente (Loop para edição) -->
+                            <div class="ingrediente-item row g-2 mb-2"
+                                 th:each="prodIngrediente, stat : *{ingredientes}"
+                                 th:object="${prodIngrediente}">
+                                <div class="col-5">
+                                    <select class="form-select" th:field="*{ingrediente.id}">
+                                        <option value="">Selecione um ingrediente</option>
+                                        <option th:each="ing : ${allIngredientes}"
+                                                th:value="${ing.id}"
+                                                th:text="${ing.nome}"
+                                                th:data-custo="${ing.custoPorUnidade}">
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col-5">
+                                    <input type="number" step="0.1" class="form-control quantidade-input"
+                                           th:field="*{quantidade}"
+                                           placeholder="Quantidade (gramas)" required
+                                           onchange="updateCusto(this)">
+                                </div>
+                                <div class="col-2">
+                                    <i class="bi bi-x-circle-fill text-danger remove-ingrediente"
+                                       style="cursor:pointer; font-size:1.2rem;"
+                                       onclick="removeIngrediente(this)"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-outline-warning btn-sm mt-3"
+                                onclick="addIngrediente()">
+                            <i class="bi bi-plus-circle me-2"></i>Adicionar Linha
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Seção: Custos Fixos -->
+                <div class="card mb-4 primary-color">
+                    <div class="card-header text-white" style="background-color:#9370DB;">
+                        <h5 class="mb-0">Custos Fixos</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Subseção Água -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Água</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Fonte de Água:</label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="aguaGalaoCheck"
+                                                   name="fonteAgua" value="GALAO" onchange="toggleCamposAgua()">
+                                            <label class="form-check-label" for="aguaGalaoCheck">Água de Galão</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="aguaTorneiraCheck"
+                                                   name="fonteAgua" value="TORNEIRA" onchange="toggleCamposAgua()">
+                                            <label class="form-check-label" for="aguaTorneiraCheck">Água da Torneira</label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Campos Condicionais Água -->
+                                    <div id="aguaGalaoCampos" class="row g-3 mb-4 d-none">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Quantidade de Litros</label>
+                                            <input type="number" step="0.1" class="form-control"
+                                                   name="quantidadeGaloes" oninput="calcularCustoAgua()">
+                                        </div>
+                                    </div>
+
+                                    <div id="aguaTorneiraCampos" class="row g-3 mb-4 d-none">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Metros Cúbicos (m³)</label>
+                                            <input type="number" step="0.1" class="form-control"
+                                                   name="metrosCubicosAgua" oninput="calcularCustoAgua()">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Subseção Gás -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Gás</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Queimadores Utilizados:</label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="quadrichamaCheck"
+                                                   name="queimadores" value="quadrichama"
+                                                   th:checked="${produto.usoQuadrichama}" onchange="calcularTotalCusto()">
+                                            <label class="form-check-label" for="quadrichamaCheck">Quadrichama</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="rapidoCheck"
+                                                   name="queimadores" value="rapido"
+                                                   th:checked="${produto.usoRapido}" onchange="calcularTotalCusto()">
+                                            <label class="form-check-label" for="rapidoCheck">Rápido</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="semirapidoCheck"
+                                                   name="queimadores" value="semirapido"
+                                                   th:checked="${produto.usoSemirapido}" onchange="calcularTotalCusto()">
+                                            <label class="form-check-label" for="semirapidoCheck">Semirápido</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label">Horas de Uso</label>
+                                        <input type="number" step="0.1" class="form-control"
+                                               th:field="*{horasGas}" required oninput="calcularTotalCusto()">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botão de Submit -->
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-lg btn-ice">
+                        <i class="bi bi-save2-fill me-2"></i>
+                        Salvar Geladinho
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

@@ -237,3 +237,42 @@ function calcularCustoAgua() {
 
     document.querySelector("[name='precoCusto']").value = custoAgua.toFixed(2);
 }
+
+function salvarNovoIngrediente() {
+    const nome = document.getElementById('novoIngredienteNome').value;
+    const custo = parseFloat(document.getElementById('novoIngredienteCusto').value);
+
+    if (!nome || isNaN(custo)) {
+        alert('Preencha todos os campos corretamente!');
+        return;
+    }
+
+    fetch('/ingredientes/salvar', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nome: nome, custoPorUnidade: custo })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Atualiza a lista global de ingredientes
+        allIngredientes.push(data);
+
+        // Atualiza todos os selects de ingredientes
+        document.querySelectorAll('select[th\\:field*="ingrediente.id"]').forEach(select => {
+            const option = document.createElement('option');
+            option.value = data.id;
+            option.textContent = data.nome;
+            option.dataset.custo = data.custoPorUnidade;
+            select.appendChild(option);
+        });
+
+        $('#novoIngredienteModal').modal('hide');
+        document.getElementById('formNovoIngrediente').reset();
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao salvar ingrediente!');
+    });
+}
