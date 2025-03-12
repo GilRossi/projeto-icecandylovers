@@ -38,19 +38,31 @@ public class TaxaController {
         return "cadastro-taxas";
     }
 
-    public String salvarGas(@ModelAttribute("taxas") Taxa novasTaxas) {
-        Taxa taxasAtuais = taxaService.obterUltimasTaxas();
+    @PostMapping("/salvar/gas")
+    public String salvarGas(@ModelAttribute("taxas") Taxa novasTaxas, Model model) {
+        try {
+            if (novasTaxas.getTaxaGas() == null || novasTaxas.getQuadrichama() == null || novasTaxas.getRapido() == null || novasTaxas.getSemirapido() == null) {
+                model.addAttribute("erro", "Todos os campos de gás são obrigatórios!");
+                return "redirect:/taxas/editar";
+            }
 
-        // Atualiza apenas campos relacionados ao Gás
-        taxasAtuais.setTaxaGas(novasTaxas.getTaxaGas());
-        taxasAtuais.setQuadrichama(novasTaxas.getQuadrichama());
-        taxasAtuais.setRapido(novasTaxas.getRapido());
-        taxasAtuais.setSemirapido(novasTaxas.getSemirapido());
-        taxasAtuais.setKcal(novasTaxas.getKcal());
-        taxasAtuais.setMj(novasTaxas.getMj());
-        taxasAtuais.setKwh(novasTaxas.getKwh());
+            Taxa taxasAtuais = taxaService.obterUltimasTaxas();
 
-        taxaService.salvarTaxas(taxasAtuais);
+            // Atualiza apenas campos relacionados ao Gás
+            taxasAtuais.setTaxaGas(novasTaxas.getTaxaGas());
+            taxasAtuais.setQuadrichama(novasTaxas.getQuadrichama());
+            taxasAtuais.setRapido(novasTaxas.getRapido());
+            taxasAtuais.setSemirapido(novasTaxas.getSemirapido());
+            taxasAtuais.setKcal(novasTaxas.getKcal());
+            taxasAtuais.setMj(novasTaxas.getMj());
+            taxasAtuais.setKwh(novasTaxas.getKwh());
+
+            taxaService.salvarTaxas(taxasAtuais);
+            model.addAttribute("mensagem", "Taxas de gás salvas com sucesso!");
+        } catch (Exception e) {
+            model.addAttribute("erro", "Erro ao salvar as taxas de gás: " + e.getMessage());
+        }
+
         return "redirect:/taxas/editar";
     }
 

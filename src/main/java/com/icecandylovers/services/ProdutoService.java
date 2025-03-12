@@ -43,7 +43,7 @@ public class ProdutoService {
     }
 
     public List<Produto> listarTodosProdutos() {
-        return produtoRepository.findAll();
+        return produtoRepository.findAllWithIngredientes();
     }
 
     public Optional<Produto> buscarProdutoPorId(Long id) {

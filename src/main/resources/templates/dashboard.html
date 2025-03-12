@@ -93,7 +93,7 @@
                         <td class="mobile-hide">
                                     <span th:each="ing : ${produto.ingredientes}"
                                           class="badge bg-light text-dark me-1"
-                                          th:text="${ing.nome}"></span>
+                                          th:text="${ing.ingrediente.nome}"></span>
                         </td>
                         <td>
                                     <span th:class="${produto.estoqueAtual < 10} ? 'text-danger fw-bold' : ''"

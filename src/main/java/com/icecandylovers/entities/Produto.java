@@ -50,11 +50,11 @@ public class Produto {
     private Double taxaEnergia;
 
     @Column(name = "uso_quadrichama")
-    private boolean usoQuadrichama;
+    private Boolean usoQuadrichama;
     @Column(name = "uso_rapido")
-    private boolean usoRapido;
+    private Boolean usoRapido;
     @Column(name = "uso_semirapido")
-    private boolean usoSemirapido;
+    private Boolean usoSemirapido;
 
     //Água
     @Column(name = "fonte_agua")
@@ -67,6 +67,30 @@ public class Produto {
     private ProdutoIngredienteId produtoIngredienteId = new ProdutoIngredienteId();
 
     // Getters e Setters
+
+    public Boolean getUsoQuadrichama() {
+        return usoQuadrichama;
+    }
+
+    public void setUsoQuadrichama(Boolean usoQuadrichama) {
+        this.usoQuadrichama = usoQuadrichama;
+    }
+
+    public Boolean getUsoRapido() {
+        return usoRapido;
+    }
+
+    public void setUsoRapido(Boolean usoRapido) {
+        this.usoRapido = usoRapido;
+    }
+
+    public Boolean getUsoSemirapido() {
+        return usoSemirapido;
+    }
+
+    public void setUsoSemirapido(Boolean usoSemirapido) {
+        this.usoSemirapido = usoSemirapido;
+    }
 
     public ProdutoIngredienteId getProdutoIngredienteId() {
         return produtoIngredienteId;
@@ -98,30 +122,6 @@ public class Produto {
 
     public void setMetrosCubicosAgua(Double metrosCubicosAgua) {
         this.metrosCubicosAgua = metrosCubicosAgua;
-    }
-
-    public boolean isUsoQuadrichama() {
-        return usoQuadrichama;
-    }
-
-    public void setUsoQuadrichama(boolean usoQuadrichama) {
-        this.usoQuadrichama = usoQuadrichama;
-    }
-
-    public boolean isUsoRapido() {
-        return usoRapido;
-    }
-
-    public void setUsoRapido(boolean usoRapido) {
-        this.usoRapido = usoRapido;
-    }
-
-    public boolean isUsoSemirapido() {
-        return usoSemirapido;
-    }
-
-    public void setUsoSemirapido(boolean usoSemirapido) {
-        this.usoSemirapido = usoSemirapido;
     }
 
     public Double getTaxaAgua() {

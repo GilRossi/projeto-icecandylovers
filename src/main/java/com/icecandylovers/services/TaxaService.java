@@ -8,53 +8,47 @@ import org.springframework.stereotype.Service;
 @Service
 public class TaxaService {
 
-    private Taxa taxas = new Taxa();
-
     @Autowired
     private TaxaRepository taxaRepository;
 
     // Métodos para obter taxas individuais
     public Double getTaxaQuadrichama() {
+        Taxa taxas = obterUltimasTaxas();
         return taxas.getQuadrichama();
     }
 
     public Double getTaxaRapido() {
+        Taxa taxas = obterUltimasTaxas();
         return taxas.getRapido();
     }
 
     public Double getTaxaSemiRapido() {
+        Taxa taxas = obterUltimasTaxas();
         return taxas.getSemirapido();
     }
 
-    //Método para salvar todas as taxas
+    // Método para salvar todas as taxas
     public void salvarTaxas(Taxa novasTaxas) {
+        Taxa taxasAtuais = obterUltimasTaxas();
 
-        this.taxas.setQuadrichama(novasTaxas.getQuadrichama());
-        this.taxas.setRapido(novasTaxas.getRapido());
-        this.taxas.setSemirapido(novasTaxas.getSemirapido());
-        this.taxas.setTaxaGas(novasTaxas.getTaxaGas());
-        this.taxas.setAgua(novasTaxas.getAgua());
-        this.taxas.setEnergia(novasTaxas.getEnergia());
-        this.taxas.setKcal(novasTaxas.getKcal());
-        this.taxas.setMj(novasTaxas.getMj());
+        // Atualiza os campos
+        taxasAtuais.setQuadrichama(novasTaxas.getQuadrichama());
+        taxasAtuais.setRapido(novasTaxas.getRapido());
+        taxasAtuais.setSemirapido(novasTaxas.getSemirapido());
+        taxasAtuais.setTaxaGas(novasTaxas.getTaxaGas());
+        taxasAtuais.setAgua(novasTaxas.getAgua());
+        taxasAtuais.setEnergia(novasTaxas.getEnergia());
+        taxasAtuais.setKcal(novasTaxas.getKcal());
+        taxasAtuais.setMj(novasTaxas.getMj());
+        taxasAtuais.setPrecoGalao(novasTaxas.getPrecoGalao());
+        taxasAtuais.setCapacidadeGalao(novasTaxas.getCapacidadeGalao());
+        taxasAtuais.setAguaTorneira(novasTaxas.getAguaTorneira());
 
-        this.taxas.setPrecoGalao(novasTaxas.getPrecoGalao());
-        this.taxas.setCapacidadeGalao(novasTaxas.getCapacidadeGalao());
-        this.taxas.setAguaTorneira(novasTaxas.getAguaTorneira());
-
-        taxaRepository.save(novasTaxas);
+        taxaRepository.save(taxasAtuais);
     }
 
     // Obtém a última taxa cadastrada
     public Taxa obterUltimasTaxas() {
         return taxaRepository.findFirstByOrderByIdDesc().orElse(new Taxa());
-    }
-
-    public Taxa obterTodasTaxas() {
-        return taxas;
-    }
-
-    public Double getTaxaSemirapido() {
-        return taxas.getSemirapido();
     }
 }

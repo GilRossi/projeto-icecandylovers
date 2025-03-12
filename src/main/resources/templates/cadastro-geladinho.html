@@ -98,7 +98,8 @@
                                                th:field="*{precoCusto}"
                                                readonly
                                                step="0.01"
-                                               type="number">
+                                               type="number"
+                                               id="precoCusto">
                                     </div>
                                 </div>
                             </div>
@@ -251,6 +252,25 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Subseção Energia -->
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">Energia (kWh)</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Taxa de Energia (R$/kWh)</label>
+                                                <input class="form-control" id="taxaEnergia" name="taxaEnergia" step="0.01" type="number">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Consumo de Energia (kWh)</label>
+                                                <input class="form-control" id="kwh" name="kwh" step="0.1" type="number">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -307,6 +327,6 @@
         </div>
     </div>
 </div>
-        <script src="/js/scripts.js"></script>
+<script src="/js/scripts.js"></script>
 </body>
 </html>

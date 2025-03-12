@@ -4,17 +4,18 @@ const PRECOS_GAS = {
     GLP: 3.50
 };
 
+// Função para alternar campos de gás
 function toggleCamposGas() {
     const tipoGas = document.getElementById('tipoGas').value;
     const taxaGasInput = document.getElementById('taxaGas');
-    const camposConversao = document.querySelectorAll('#kcal, #mj, #kwh'); // Seleciona os campos de energia
+    const camposConversao = document.querySelectorAll('#kcal, #mj, #kwh');
     const precoGasGN = document.getElementById('precoGasGN');
     const precoGasGLP = document.getElementById('precoGasGLP');
 
     // Habilita/desabilita campos de energia
     camposConversao.forEach(campo => {
-            campo.disabled = (tipoGas === ""); // Desabilita apenas se não houver tipo
-            campo.readOnly = false; // Sempre permite edição (não bloqueia a exibição)
+        campo.disabled = (tipoGas === "");
+        campo.readOnly = false;
     });
 
     // Resetar exibição de preços
@@ -37,7 +38,7 @@ function toggleCamposGas() {
         precoGasGLP.classList.remove('d-none');
     } else {
         taxaGasInput.value = "";
-        camposConversao.forEach(campo => campo.value = ""); // Limpa campos se não houver tipo
+        camposConversao.forEach(campo => campo.value = "");
     }
 
     // Atualiza cálculos
@@ -78,7 +79,7 @@ function converterEnergia(event) {
     calcularKwhKg();
 }
 
-// Atualiza cálculos de kWh/Kg com os valores convertidos
+// Atualiza cálculos de kWh/Kg
 function calcularKwhKg() {
     const kwh = parseFloat(document.getElementById('kwh').value) || 0;
     const quadrichama = parseFloat(document.getElementById('quadrichama').value) || 0;
@@ -86,7 +87,7 @@ function calcularKwhKg() {
     const semirapido = parseFloat(document.getElementById('semirapido').value) || 0;
 }
 
-// Funções para adicionar/remover ingredientes
+// Função para adicionar ingredientes
 function addIngrediente() {
     const container = document.getElementById('ingredientes-container');
     const index = container.children.length;
@@ -123,29 +124,52 @@ function calcularTotalCusto() {
 
     // Custo dos ingredientes
     document.querySelectorAll('.ingrediente-item').forEach(row => {
-        const custo = parseFloat(row.dataset.custo) || 0;
-        total += custo;
-    });
+            const custoUnitario = parseFloat(row.querySelector('option:checked')?.dataset.custo || 0);
+            const quantidade = parseFloat(row.querySelector('input[type="number"]').value) || 0;
+            if (!isNaN(custoUnitario) && !isNaN(quantidade)) {
+                total += custoUnitario * quantidade;
+            }
+        });
 
     // Custo da água
-    const custoAgua = parseFloat(document.querySelector("[name='precoCusto']").value) || 0;
-    total += custoAgua;
+    const fonteAgua = document.querySelector("[name='fonteAgua']").value;
+    const taxaAgua = parseFloat(document.getElementById("taxaAgua").value) || 0;
+
+    if (fonteAgua === "GALAO") {
+        const quantidadeGaloes = parseFloat(document.querySelector("[name='quantidadeGaloes']").value) || 0;
+        total += quantidadeGaloes * taxaAgua;
+    } else if (fonteAgua === "TORNEIRA") {
+        const metrosCubicosAgua = parseFloat(document.querySelector("[name='metrosCubicosAgua']").value) || 0;
+        total += metrosCubicosAgua * taxaAgua;
+    }
 
     // Custo do gás
     const horasGas = parseFloat(document.querySelector("[name='horasGas']").value) || 0;
-    const taxaGas = parseFloat(document.getElementById('taxaGas').value) || 0;
+    const taxaGas = parseFloat(document.getElementById("taxaGas").value) || 0;
     total += horasGas * taxaGas;
 
-    // Atualiza o campo
-    document.querySelector("[name='precoCusto']").value = total.toFixed(2);
+    // Custo da energia (kWh)
+    const kwh = parseFloat(document.getElementById('kwh').value) || 0;
+    const taxaEnergia = parseFloat(document.getElementById("taxaEnergia").value) || 0;
+    total += kwh * taxaEnergia;
+
+    // Atualiza o campo de Preço de Custo
+    const precoCustoInput = document.querySelector("[name='precoCusto']");
+    precoCustoInput.value = total.toFixed(2);
+    console.log("Preço de Custo calculado:", total.toFixed(2));
+
+    // Feedback visual (opcional)
+    precoCustoInput.classList.add('highlight');
+    setTimeout(() => precoCustoInput.classList.remove('highlight'), 1000);
 }
 
+// Função para remover ingredientes
 function removeIngrediente(element) {
     element.closest('.ingrediente-item').remove();
     calcularTotalCusto();
 }
 
-// Atualiza o custo total
+// Função para atualizar o custo de um ingrediente
 function updateCusto(element) {
     const row = element.closest('.ingrediente-item');
     const custoUnitario = parseFloat(row.querySelector('option:checked')?.dataset.custo || 0);
@@ -153,52 +177,15 @@ function updateCusto(element) {
     row.dataset.custo = (custoUnitario * quantidade).toFixed(2);
     calcularTotalCusto();
 }
-document.addEventListener('DOMContentLoaded', function() {
-    toggleCamposGas(); // Executa ao carregar a página
-});
-// Atualiza a tabela com o valor convertido de kWh
-document.getElementById('resultadoKwh').textContent = kwh?.toFixed(4) + ' kWh';
-// Adicione um listener para o evento de submit do formulário
-document.querySelector('form').addEventListener('submit', function() {
-    // Força a conversão final antes de enviar
-    const kwh = document.getElementById('kwh').value;
-    // Garante que o valor está correto
-    if (!kwh) {
-        alert('Preencha os campos de energia antes de salvar.');
-        event.preventDefault();
-    }
-});
 
-function toggleCamposAgua() {
-    const fonteAgua = document.querySelector('[th\\:field="*{fonteAgua}"]').value;
-    document.getElementById('aguaGalaoCampos').classList.toggle('d-none', fonteAgua !== 'GALAO');
-    document.getElementById('aguaTorneiraCampos').classList.toggle('d-none', fonteAgua !== 'TORNEIRA');
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-    toggleCamposAgua();
-    calcularCustoAgua();
-
-    // Monitora mudanças na seleção da fonte de água
-    document.querySelector("[name='fonteAgua']").addEventListener("change", function () {
-        toggleCamposAgua();
-        calcularCustoAgua();
-    });
-
-    // Monitora entrada de valores nos campos de quantidade de água
-    document.querySelectorAll("[name='quantidadeGaloes'], [name='metrosCubicosAgua']").forEach(input => {
-        input.addEventListener("input", calcularCustoAgua);
-    });
-});
-
-// Alterna exibição dos campos de acordo com a fonte de água
+// Função para alternar campos de água
 function toggleCamposAgua() {
     const fonteAgua = document.querySelector("[name='fonteAgua']").value;
     document.getElementById("aguaGalaoCampos").classList.toggle("d-none", fonteAgua !== "GALAO");
     document.getElementById("aguaTorneiraCampos").classList.toggle("d-none", fonteAgua !== "TORNEIRA");
 }
 
-// Calcula o custo da água baseada na seleção e na quantidade
+// Função para calcular o custo da água
 function calcularCustoAgua() {
     let custoAgua = 0;
     const taxaAgua = parseFloat(document.getElementById("taxaAgua").value) || 0;
@@ -216,33 +203,8 @@ function calcularCustoAgua() {
     // Chama o cálculo total
     calcularTotalCusto();
 }
-// Alterna exibição dos campos conforme os checkboxes marcados
-function toggleCamposAgua() {
-    const aguaGalaoCheck = document.getElementById("aguaGalaoCheck").checked;
-    const aguaTorneiraCheck = document.getElementById("aguaTorneiraCheck").checked;
 
-    document.getElementById("aguaGalaoCampos").classList.toggle("d-none", !aguaGalaoCheck);
-    document.getElementById("aguaTorneiraCampos").classList.toggle("d-none", !aguaTorneiraCheck);
-}
-
-// Calcula o custo da água com base nos checkboxes marcados
-function calcularCustoAgua() {
-    let custoAgua = 0;
-    const taxaAgua = parseFloat(document.getElementById("taxaAgua").value) || 0;
-
-    if (document.getElementById("aguaGalaoCheck").checked) {
-        const quantidadeGaloes = parseFloat(document.querySelector("[name='quantidadeGaloes']").value) || 0;
-        custoAgua += quantidadeGaloes * taxaAgua;
-    }
-
-    if (document.getElementById("aguaTorneiraCheck").checked) {
-        const metrosCubicos = parseFloat(document.querySelector("[name='metrosCubicosAgua']").value) || 0;
-        custoAgua += metrosCubicos * taxaAgua;
-    }
-
-    document.querySelector("[name='precoCusto']").value = custoAgua.toFixed(2);
-}
-
+// Função para salvar novo ingrediente
 function salvarNovoIngrediente() {
     const nome = document.getElementById('novoIngredienteNome').value;
     const custo = parseFloat(document.getElementById('novoIngredienteCusto').value);
@@ -301,3 +263,37 @@ function salvarNovoIngrediente() {
         saveBtn.disabled = false;
     });
 }
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+    toggleCamposGas();
+    toggleCamposAgua();
+
+    // Adiciona listeners para campos de ingredientes
+    document.querySelectorAll('.quantidade-input').forEach(input => {
+        input.addEventListener('input', calcularTotalCusto);
+    });
+
+    // Adiciona listeners para campos de água
+    document.querySelectorAll("[name='quantidadeGaloes'], [name='metrosCubicosAgua']").forEach(input => {
+        input.addEventListener('input', calcularTotalCusto);
+    });
+
+    // Adiciona listeners para campos de gás
+    document.querySelectorAll("[name='horasGas']").forEach(input => {
+        input.addEventListener('input', calcularTotalCusto);
+    });
+
+    // Adiciona listeners para campos de energia (kcal, MJ, kWh)
+    document.querySelectorAll("#kcal, #mj, #kwh").forEach(input => {
+        input.addEventListener('input', calcularTotalCusto);
+    });
+
+    // Adiciona listeners para checkboxes de queimadores
+    document.querySelectorAll("[name='queimadores']").forEach(checkbox => {
+        checkbox.addEventListener('change', calcularTotalCusto);
+    });
+
+    // Adiciona listeners para a seleção da fonte de água
+    document.querySelector("[name='fonteAgua']").addEventListener('change', calcularTotalCusto);
+});

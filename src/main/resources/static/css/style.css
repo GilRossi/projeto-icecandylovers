@@ -142,3 +142,7 @@ body {
 .modal {
     z-index: 1050 !important;
 }
+.highlight {
+    background-color: #f0f8ff;
+    transition: background-color 0.5s ease;
+}
