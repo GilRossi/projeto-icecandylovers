@@ -11,12 +11,11 @@
 
     <!-- Estilos Personalizados -->
     <script th:inline="javascript">
-        // Pré-carrega os ingredientes
-        const allIngredientes = /*[[${allIngredientes}]]*/ [];
+        if (typeof allIngredientes === 'undefined') {
+            const allIngredientes = /*[[${allIngredientes}]]*/ [];
+            console.log('allIngredientes carregados:', allIngredientes);
+        }
     </script>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -78,34 +77,25 @@
                                 <div class="row g-3">
                                     <!-- Sabor (obrigatório) -->
                                     <div class="mb-3">
-                                        <label class="form-label">Sabor do Geladinho</label>
-                                        <input class="form-control"
-                                               th:field="*{sabor}"
-                                               type="text"
-                                               name="sabor"
-                                               required
-                                               placeholder="Digite o sabor">
+                                        <label for="saborGeladinho" class="form-label">Sabor do Geladinho</label>
+                                        <input id="saborGeladinho" class="form-control" th:field="*{sabor}" type="text"
+                                               name="sabor" required placeholder="Digite o sabor">
+
                                     </div>
 
 
                                     <!-- Estoque -->
                                     <div class="mb-3">
-                                        <label class="form-label">Estoque Inicial</label>
-                                        <input class="form-control"
-                                               th:field="*{estoqueInicial}"
-                                               type="number"
-                                               min="0"
-                                               value="0"
-                                               required>
+                                        <label for="estoqueInicial" class="form-label">Estoque Inicial</label>
+                                        <input id="estoqueInicial" class="form-control" th:field="*{estoqueInicial}"
+                                               type="number" min="0" value="0" required>
+
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Estoque Atual</label>
-                                        <input class="form-control"
-                                               th:field="*{estoqueAtual}"
-                                               type="number"
-                                               min="0"
-                                               value="0"
-                                               required>
+                                        <label for="estoqueAtual" class="form-label">Estoque Atual</label>
+                                        <input id="estoqueAtual" class="form-control" th:field="*{estoqueAtual}"
+                                               type="number" min="0" value="0" required>
+
                                     </div>
                                     <div class="mb-3">
                                         <label for="precoCusto" class="form-label">Preço de Custo (R$)</label>
@@ -141,24 +131,30 @@
 
                                 <!-- Ingredientes -->
                                 <div id="ingredientes-container">
-                                    <div class="ingrediente-item row g-2 mb-2" th:each="prodIngrediente, stat : *{ingredientes}">
+                                    <div class="ingrediente-item row g-2 mb-2"
+                                         th:each="prodIngrediente, stat : *{ingredientes}">
                                         <div class="col-5">
-                                            <select class="form-select" th:field="*{ingredientes[__${stat.index}__].ingredienteId}">
-                                                <option value="">Selecione um ingrediente</option>
-                                                <option th:each="ing : ${allIngredientes}"
-                                                        th:value="${ing.id}"
-                                                        th:text="${ing.nome ?: 'Ingrediente Desconhecido'}">
-                                                </option>
-                                            </select>
+                                            <label>
+                                                <select class="form-select"
+                                                        th:field="*{ingredientes[__${stat.index}__].ingredienteId}">
+                                                    <option value="">Selecione um ingrediente</option>
+                                                    <option th:each="ing : ${allIngredientes}"
+                                                            th:value="${ing.id}"
+                                                            th:text="${ing.nome ?: 'Ingrediente Desconhecido'}">
+                                                    </option>
+                                                </select>
+                                            </label>
                                         </div>
                                         <div class="col-5">
-                                            <input class="form-control"
-                                                   type="number"
-                                                   th:field="*{ingredientes[__${stat.index}__].quantidade}"
-                                                   placeholder="Quantidade"
-                                                   min="0"
-                                                   step="0.1"
-                                                   required>
+                                            <label>
+                                                <input class="form-control"
+                                                       type="number"
+                                                       th:field="*{ingredientes[__${stat.index}__].quantidade}"
+                                                       placeholder="Quantidade"
+                                                       min="0"
+                                                       step="0.1"
+                                                       required>
+                                            </label>
                                         </div>
                                         <div class="col-2">
                                             <i class="bi bi-x-circle-fill text-danger"
@@ -170,7 +166,9 @@
 
 
                                 <!-- Botão para adicionar novo ingrediente -->
-                                <button class="btn btn-sm btn-ice" type="button" onclick="addIngrediente()"><i class="bi bi-plus-circle me-2"></i>Adicionar Linha</button>
+                                <button id="addIngredienteBtn" class="btn btn-sm btn-ice" type="button">
+                                    <i class="bi bi-plus-circle me-2"></i>Adicionar Linha
+                                </button>
                             </div>
                         </div>
 
@@ -189,36 +187,37 @@
                                     <div class="card-body">
                                         <div class="row g-3">
                                             <div class="col-md-12">
-                                                <label class="form-label">Fonte de Água:</label>
+                                                <p class="form-label">Fonte de Água:</p>
+
                                                 <div class="form-check">
-                                                    <input class="form-check-input" id="aguaGalaoCheck" name="fonteAgua"
-                                                           onchange="toggleCamposAgua()" type="checkbox" value="GALAO">
-                                                    <label class="form-check-label" for="aguaGalaoCheck">Água de
-                                                        Galão</label>
+                                                    <input class="form-check-input" id="aguaGalaoCheck" name="fonteAgua" type="checkbox" value="GALAO">
+                                                    <label for="aguaGalaoCheck" class="form-check-label">Água de Galão</label>
                                                 </div>
+
                                                 <div class="form-check">
-                                                    <input class="form-check-input" id="aguaTorneiraCheck"
-                                                           name="fonteAgua"
-                                                           onchange="toggleCamposAgua()" type="checkbox"
-                                                           value="TORNEIRA">
-                                                    <label class="form-check-label" for="aguaTorneiraCheck">Água da
-                                                        Torneira</label>
+                                                    <input class="form-check-input" id="aguaTorneiraCheck" name="fonteAgua" type="checkbox" value="TORNEIRA">
+                                                    <label for="aguaTorneiraCheck" class="form-check-label">Água da Torneira</label>
                                                 </div>
                                             </div>
 
                                             <!-- Campos Condicionais Água -->
                                             <div class="row g-3 mb-4 d-none" id="aguaGalaoCampos">
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Quantidade de Litros</label>
-                                                    <input class="form-control" name="quantidadeGaloes" oninput="calcularCustoAgua()"
+                                                    <label for="quantidadeGaloes" class="form-label">Quantidade de
+                                                        Litros</label>
+                                                    <input id="quantidadeGaloes" class="form-control"
+                                                           name="quantidadeGaloes" oninput="calcularCustoAgua()"
                                                            step="0.1" type="number">
+
                                                 </div>
                                             </div>
 
                                             <div class="row g-3 mb-4 d-none" id="aguaTorneiraCampos">
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Metros Cúbicos (m³)</label>
-                                                    <input class="form-control" name="metrosCubicosAgua" oninput="calcularCustoAgua()"
+                                                    <label for="metrosCubicosAgua" class="form-label">Metros Cúbicos
+                                                        (m³)</label>
+                                                    <input id="metrosCubicosAgua" class="form-control"
+                                                           name="metrosCubicosAgua" oninput="calcularCustoAgua()"
                                                            step="0.1" type="number">
                                                 </div>
                                             </div>
@@ -234,69 +233,60 @@
                                     <div class="card-body">
                                         <div class="row g-3">
                                             <div class="col-md-12">
-                                                <label class="form-label">Queimadores Utilizados:</label>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" id="quadrichamaCheck"
-                                                           name="queimadores"
-                                                           onchange="calcularTotalCusto()" th:checked="${produto.usoQuadrichama}"
-                                                           type="checkbox"
-                                                           value="quadrichama">
-                                                    <label class="form-check-label"
-                                                           for="quadrichamaCheck">Quadrichama</label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" id="rapidoCheck" name="queimadores"
-                                                           onchange="calcularTotalCusto()" th:checked="${produto.usoRapido}"
-                                                           type="checkbox"
-                                                           value="rapido">
-                                                    <label class="form-check-label" for="rapidoCheck">Rápido</label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" id="semirapidoCheck" name="queimadores"
-                                                           onchange="calcularTotalCusto()" th:checked="${produto.usoSemirapido}"
-                                                           type="checkbox"
-                                                           value="semirapido">
-                                                    <label class="form-check-label"
-                                                           for="semirapidoCheck">Semirápido</label>
-                                                </div>
-                                            </div>
+                                                <p class="form-label">Queimadores Utilizados:</p>
 
-                                            <div class="col-md-6">
-                                                <label class="form-label">Horas de Uso</label>
-                                                <input class="form-control" oninput="calcularTotalCusto()"
-                                                       step="0.1" th:field="*{horasGas}" type="number">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" id="quadrichamaCheck" name="queimadores" type="checkbox" value="quadrichama">
+                                                    <label for="quadrichamaCheck" class="form-check-label">Quadrichama</label>
+                                                </div>
+
+                                                <div class="form-check">
+                                                    <input class="form-check-input" id="rapidoCheck" name="queimadores" type="checkbox" value="rapido">
+                                                    <label for="rapidoCheck" class="form-check-label">Rápido</label>
+                                                </div>
+
+                                                <div class="form-check">
+                                                    <input class="form-check-input" id="semirapidoCheck" name="queimadores" type="checkbox" value="semirapido">
+                                                    <label for="semirapidoCheck" class="form-check-label">Semirápido</label>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <label for="horasGas" class="form-label">Horas de Uso</label>
+                                                    <input id="horasGas" class="form-control" name="horasGas" oninput="calcularTotalCusto()" step="0.1" type="number">
+
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <!-- Subseção Energia -->
-                                <div class="card mb-3">
-                                    <div class="card-header bg-light">
-                                        <h6 class="mb-0">Energia (kWh)</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row g-3">
-                                            <div class="col-md-6">
-                                                <label class="form-label">Taxa de Energia (R$/kWh)</label>
-                                                <input class="form-control" id="taxaEnergia" name="taxaEnergia" step="0.01" type="number">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label">Consumo de Energia (kWh)</label>
-                                                <input class="form-control" id="kwh" name="kwh" step="0.1" type="number">
+                                    <!-- Subseção Energia -->
+                                    <div class="card mb-3">
+                                        <div class="card-header bg-light">
+                                            <h6 class="mb-0">Energia (kWh)</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label for="taxaEnergia" class="form-label">Taxa de Energia (R$/kWh)</label>
+                                                    <input id="taxaEnergia" class="form-control" name="taxaEnergia" step="0.01" type="number">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="kwh" class="form-label">Consumo de Energia (kWh)</label>
+                                                    <input id="kwh" class="form-control" name="kwh" step="0.1" type="number">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Botão de Submit -->
-                        <div class="d-grid gap-2 mt-4">
-                            <button class="btn btn-lg btn-ice" type="submit">
-                                <i class="bi bi-save2-fill me-2"></i>
-                                Salvar Geladinho
-                            </button>
+                            <!-- Botão de Submit -->
+                            <div class="d-grid gap-2 mt-4">
+                                <button class="btn btn-lg btn-ice" type="submit">
+                                    <i class="bi bi-save2-fill me-2"></i>
+                                    Salvar Geladinho
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -316,34 +306,50 @@
             <div class="modal-body">
                 <form id="formNovoIngrediente">
                     <div class="mb-3">
-                        <label class="form-label">Nome do Ingrediente</label>
-                        <input type="text" class="form-control" id="novoIngredienteNome" required>
+                        <label for="novoIngredienteNome" class="form-label">Nome do Ingrediente</label>
+                        <input id="novoIngredienteNome" class="form-control" name="novoIngredienteNome" type="text" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Custo (R$)</label>
-                        <input type="number" step="0.01" class="form-control" id="novoIngredienteCusto" required>
+                        <label for="novoIngredienteCusto" class="form-label">Custo (R$)</label>
+                        <input id="novoIngredienteCusto" class="form-control" name="novoIngredienteCusto" type="number" step="0.01" required>
+
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Unidade de Medida</label>
-                        <select class="form-select" id="novoIngredienteUnidade" required>
+                        <label for="novoIngredienteUnidade" class="form-label">Unidade de Medida</label>
+                        <select id="novoIngredienteUnidade" class="form-select" name="novoIngredienteUnidade" required>
                             <option value="gramas">Gramas</option>
                             <option value="litros">Litros</option>
                             <option value="unidades">Unidades</option>
                         </select>
+
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Estoque Inicial</label>
-                        <input type="number" step="0.1" class="form-control" id="novoIngredienteEstoque" required>
+                        <label for="novoIngredienteEstoque" class="form-label">Estoque Inicial</label>
+                        <input id="novoIngredienteEstoque" class="form-control" name="novoIngredienteEstoque" type="number" step="0.1" required>
+
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary-icl" data-bs-dismiss="modal"><i class="bi bi-x-square-fill me-2"></i>Cancelar</button>
-                <button type="button" class="btn btn-ice" onclick="salvarNovoIngrediente()"><i class="bi bi-save2-fill me-2"></i>Salvar</button>
+                <button type="button" class="btn btn-secondary-icl" data-bs-dismiss="modal"><i
+                        class="bi bi-x-square-fill me-2"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-ice" onclick="salvarNovoIngrediente()"><i
+                        class="bi bi-save2-fill me-2"></i>Salvar
+                </button>
             </div>
         </div>
     </div>
 </div>
-<script src="/js/scripts.js"></script>
+
+<script th:inline="javascript">
+    window.allIngredientes = /*[[${allIngredientes}]]*/ [];
+    console.log('allIngredientes carregados:', window.allIngredientes);
+</script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/scripts.js" defer></script>
+
 </body>
 </html>
