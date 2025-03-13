@@ -56,35 +56,6 @@ function removeIngrediente(element) {
     element.closest('.ingrediente-item').remove();
     console.log('Linha removida.');
 }
-function salvarNovoIngrediente() {
-    const nome = document.getElementById('novoIngredienteNome').value;
-    const custo = document.getElementById('novoIngredienteCusto').value;
-    const unidade = document.getElementById('novoIngredienteUnidade').value;
-    const estoque = document.getElementById('novoIngredienteEstoque').value;
-
-    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-
-    fetch('/ingredientes/salvar', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            [csrfHeader]: csrfToken
-        },
-        body: JSON.stringify({ nome, custo, unidade, estoque })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.id) {
-            window.allIngredientes.push(data); // Atualiza a lista global
-            atualizarIngredientesDropdown();
-            fecharModal('#novoIngredienteModal');
-        } else {
-            console.error('Erro ao salvar ingrediente:', data);
-        }
-    })
-    .catch(error => console.error('Erro:', error));
-}
 
 function atualizarIngredientesDropdown() {
     const selects = document.querySelectorAll('select[name^="ingredientes"]');
@@ -96,9 +67,42 @@ function atualizarIngredientesDropdown() {
     });
 }
 
+function salvarNovoIngrediente() {
+    const nome = document.getElementById('novoIngredienteNome').value;
+    const custoPorUnidade = document.getElementById('novoIngredienteCusto').value;
+    const unidadeMedida = document.getElementById('novoIngredienteUnidade').value;
+    const estoqueInicial = document.getElementById('novoIngredienteEstoque').value;
+
+    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+    fetch('/ingredientes/salvar', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            [csrfHeader]: csrfToken
+        },
+        body: JSON.stringify({ nome, custoPorUnidade, unidadeMedida, estoqueInicial })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('Erro: ' + data.error);
+        } else {
+            window.allIngredientes.push(data);
+            atualizarIngredientesDropdown();
+            if (data.closeModal) {
+                fecharModal('#novoIngredienteModal');
+            }
+        }
+    })
+    .catch(error => console.error('Erro ao salvar ingrediente:', error));
+}
+
 function fecharModal(modalId) {
-    const modal = bootstrap.Modal.getInstance(document.querySelector(modalId));
-    modal.hide();
+    const modalElement = document.querySelector(modalId);
+    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+    modalInstance.hide();
 }
 
 document.getElementById('ingredientes-container').addEventListener('input', calcularPrecoCusto);
@@ -108,11 +112,13 @@ function calcularPrecoCusto() {
 
     document.querySelectorAll('#ingredientes-container .ingrediente-item').forEach(item => {
         const select = item.querySelector('select');
-        const quantidade = parseFloat(item.querySelector('input[type="number"]').value) || 0;
+        const quantidade = parseInt(item.querySelector('input[type="number"]').value) || 0;
         const ingrediente = window.allIngredientes.find(ing => ing.id == select.value);
 
-        if (ingrediente && ingrediente.custoPorUnidade) {
-            totalCusto += quantidade * parseFloat(ingrediente.custoPorUnidade);
+        if (ingrediente && ingrediente.custoPorUnidade && ingrediente.estoqueInicial) {
+            const estoqueInicial = parseInt(ingrediente.estoqueInicial) || 1; // Garante que não haja divisão por zero
+            const custoUnitario = parseFloat(ingrediente.custoPorUnidade) / estoqueInicial;
+            totalCusto += custoUnitario * quantidade;
         }
     });
 

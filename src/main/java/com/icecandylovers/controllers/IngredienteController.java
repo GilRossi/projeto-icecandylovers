@@ -18,34 +18,41 @@ public class IngredienteController {
     private IngredienteService ingredienteService;
 
     @PostMapping("/salvar")
-    public ResponseEntity<?> salvarIngrediente(@RequestBody Ingrediente ingrediente) {
+    public ResponseEntity<Map<String, Object>> salvarIngrediente(@RequestBody Ingrediente ingrediente) {
+        Map<String, Object> response = new HashMap<>();
         try {
             if (ingrediente.getNome() == null || ingrediente.getNome().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Nome do ingrediente é obrigatório.");
+                response.put("error", "Nome do ingrediente é obrigatório.");
+                return ResponseEntity.badRequest().body(response);
             }
             if (ingrediente.getCustoPorUnidade() == null || ingrediente.getCustoPorUnidade().doubleValue() <= 0) {
-                return ResponseEntity.badRequest().body("Custo por unidade deve ser maior que zero.");
+                response.put("error", "Custo por unidade deve ser maior que zero.");
+                return ResponseEntity.badRequest().body(response);
             }
             if (ingrediente.getUnidadeMedida() == null || ingrediente.getUnidadeMedida().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Unidade de medida é obrigatória.");
+                response.put("error", "Unidade de medida é obrigatória.");
+                return ResponseEntity.badRequest().body(response);
             }
             if (ingrediente.getEstoqueInicial() == null || ingrediente.getEstoqueInicial().doubleValue() < 0) {
-                return ResponseEntity.badRequest().body("Estoque inicial não pode ser negativo.");
+                response.put("error", "Estoque inicial não pode ser negativo.");
+                return ResponseEntity.badRequest().body(response);
             }
 
             ingrediente.setEstoqueAtual(ingrediente.getEstoqueInicial());
             Ingrediente savedIngrediente = ingredienteService.salvar(ingrediente);
 
-            Map<String, Object> response = new HashMap<>();
             response.put("id", savedIngrediente.getId());
             response.put("nome", savedIngrediente.getNome());
             response.put("custoPorUnidade", savedIngrediente.getCustoPorUnidade());
             response.put("unidadeMedida", savedIngrediente.getUnidadeMedida());
             response.put("estoqueAtual", savedIngrediente.getEstoqueAtual());
+            response.put("closeModal", true);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao salvar ingrediente: " + e.getMessage());
+            response.put("error", "Erro ao salvar ingrediente: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
 }
