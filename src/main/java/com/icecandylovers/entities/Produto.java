@@ -12,16 +12,23 @@ public class Produto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String sabor;
-    private BigDecimal precoVenda;
+
+    @Column(nullable = false)
     private int estoqueAtual;
+
+    @Column(nullable = false)
     private Integer estoqueInicial;
 
-    @OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProdutoIngrediente> ingredientes;
-
-    @Column(name = "preco_custo")
+    @Column(name = "preco_custo", nullable = false)
     private Double precoCusto;
+
+    @OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProdutoIngrediente> ingredientes = new ArrayList<>();
+
+    @Column(name = "preco_venda", nullable = true)
+    private BigDecimal precoVenda;
 
     @Column(name = "horas_producao")
     private Double horasProducao;
@@ -51,125 +58,97 @@ public class Produto {
 
     @Column(name = "uso_quadrichama")
     private Boolean usoQuadrichama;
+
     @Column(name = "uso_rapido")
     private Boolean usoRapido;
+
     @Column(name = "uso_semirapido")
     private Boolean usoSemirapido;
 
-    //Água
+    // Água
     @Column(name = "fonte_agua")
     private String fonteAgua;
+
     @Column(name = "quantidade_galoes")
     private Double quantidadeGaloes;
+
     @Column(name = "metros_cubicos_agua")
     private Double metrosCubicosAgua;
 
-    private ProdutoIngredienteId produtoIngredienteId = new ProdutoIngredienteId();
+    // Custos fixos
+    @Column(name = "custo_agua")
+    private Double custoAgua;
+
+    @Column(name = "custo_gas")
+    private Double custoGas;
+
+    @Column(name = "custo_energia")
+    private Double custoEnergia;
 
     // Getters e Setters
 
-    public Boolean getUsoQuadrichama() {
-        return usoQuadrichama;
+    public Long getId() {
+        return id;
     }
 
-    public void setUsoQuadrichama(Boolean usoQuadrichama) {
-        this.usoQuadrichama = usoQuadrichama;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public Boolean getUsoRapido() {
-        return usoRapido;
+    public String getSabor() {
+        return sabor;
     }
 
-    public void setUsoRapido(Boolean usoRapido) {
-        this.usoRapido = usoRapido;
+    public void setSabor(String sabor) {
+        this.sabor = sabor;
     }
 
-    public Boolean getUsoSemirapido() {
-        return usoSemirapido;
+    public int getEstoqueAtual() {
+        return estoqueAtual;
     }
 
-    public void setUsoSemirapido(Boolean usoSemirapido) {
-        this.usoSemirapido = usoSemirapido;
+    public void setEstoqueAtual(int estoqueAtual) {
+        this.estoqueAtual = estoqueAtual;
     }
 
-    public ProdutoIngredienteId getProdutoIngredienteId() {
-        return produtoIngredienteId;
+    public Integer getEstoqueInicial() {
+        return estoqueInicial;
     }
 
-    public void setProdutoIngredienteId(ProdutoIngredienteId produtoIngredienteId) {
-        this.produtoIngredienteId = produtoIngredienteId;
+    public void setEstoqueInicial(Integer estoqueInicial) {
+        this.estoqueInicial = estoqueInicial;
     }
 
-    public String getFonteAgua() {
-        return fonteAgua;
+    public Double getPrecoCusto() {
+        return precoCusto;
     }
 
-    public void setFonteAgua(String fonteAgua) {
-        this.fonteAgua = fonteAgua;
+    public void setPrecoCusto(Double precoCusto) {
+        this.precoCusto = precoCusto;
     }
 
-    public Double getQuantidadeGaloes() {
-        return quantidadeGaloes;
+    public List<ProdutoIngrediente> getIngredientes() {
+        return ingredientes;
     }
 
-    public void setQuantidadeGaloes(Double quantidadeGaloes) {
-        this.quantidadeGaloes = quantidadeGaloes;
+    public void setIngredientes(List<ProdutoIngrediente> ingredientes) {
+        this.ingredientes = ingredientes;
     }
 
-    public Double getMetrosCubicosAgua() {
-        return metrosCubicosAgua;
+    public BigDecimal getPrecoVenda() {
+        return precoVenda;
     }
 
-    public void setMetrosCubicosAgua(Double metrosCubicosAgua) {
-        this.metrosCubicosAgua = metrosCubicosAgua;
+    public void setPrecoVenda(BigDecimal precoVenda) {
+        this.precoVenda = precoVenda;
     }
 
-    public Double getTaxaAgua() {
-        return taxaAgua;
+    public Double getHorasProducao() {
+        return horasProducao;
     }
 
-    public void setTaxaAgua(Double taxaAgua) {
-        this.taxaAgua = taxaAgua;
-    }
-
-    public Double getTaxaGas() {
-        return taxaGas;
-    }
-
-    public void setTaxaGas(Double taxaGas) {
-        this.taxaGas = taxaGas;
-    }
-
-    public Double getTaxaEnergia() {
-        return taxaEnergia;
-    }
-
-    public void setTaxaEnergia(Double taxaEnergia) {
-        this.taxaEnergia = taxaEnergia;
-    }
-
-    public Double getHorasAgua() {
-        return horasAgua;
-    }
-
-    public void setHorasAgua(Double horasAgua) {
-        this.horasAgua = horasAgua;
-    }
-
-    public Double getHorasGas() {
-        return horasGas;
-    }
-
-    public void setHorasGas(Double horasGas) {
-        this.horasGas = horasGas;
-    }
-
-    public Double getHorasEnergia() {
-        return horasEnergia;
-    }
-
-    public void setHorasEnergia(Double horasEnergia) {
-        this.horasEnergia = horasEnergia;
+    public void setHorasProducao(Double horasProducao) {
+        this.horasProducao = horasProducao;
     }
 
     public Double getKcalOperadora() {
@@ -244,67 +223,123 @@ public class Produto {
         this.kwhKgSemirapido = kwhKgSemirapido;
     }
 
-    public Double getPrecoCusto() {
-        return precoCusto;
+    public Double getHorasAgua() {
+        return horasAgua;
     }
 
-    public void setPrecoCusto(Double precoCusto) {
-        this.precoCusto = precoCusto;
+    public void setHorasAgua(Double horasAgua) {
+        this.horasAgua = horasAgua;
     }
 
-    public Double getHorasProducao() {
-        return horasProducao;
+    public Double getHorasGas() {
+        return horasGas;
     }
 
-    public void setHorasProducao(Double horasProducao) {
-        this.horasProducao = horasProducao;
+    public void setHorasGas(Double horasGas) {
+        this.horasGas = horasGas;
     }
 
-    public Integer getEstoqueInicial() {
-        return estoqueInicial;
+    public Double getHorasEnergia() {
+        return horasEnergia;
     }
 
-    public void setEstoqueInicial(Integer estoqueInicial) {
-        this.estoqueInicial = estoqueInicial;
+    public void setHorasEnergia(Double horasEnergia) {
+        this.horasEnergia = horasEnergia;
     }
 
-    public Long getId() {
-        return id;
+    public Double getTaxaAgua() {
+        return taxaAgua;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setTaxaAgua(Double taxaAgua) {
+        this.taxaAgua = taxaAgua;
     }
 
-    public String getSabor() {
-        return sabor;
+    public Double getTaxaGas() {
+        return taxaGas;
     }
 
-    public void setSabor(String sabor) {
-        this.sabor = sabor;
+    public void setTaxaGas(Double taxaGas) {
+        this.taxaGas = taxaGas;
     }
 
-    public BigDecimal getPrecoVenda() {
-        return precoVenda;
+    public Double getTaxaEnergia() {
+        return taxaEnergia;
     }
 
-    public void setPrecoVenda(BigDecimal precoVenda) {
-        this.precoVenda = precoVenda;
+    public void setTaxaEnergia(Double taxaEnergia) {
+        this.taxaEnergia = taxaEnergia;
     }
 
-    public int getEstoqueAtual() {
-        return estoqueAtual;
+    public Boolean getUsoQuadrichama() {
+        return usoQuadrichama;
     }
 
-    public void setEstoqueAtual(int estoqueAtual) {
-        this.estoqueAtual = estoqueAtual;
+    public void setUsoQuadrichama(Boolean usoQuadrichama) {
+        this.usoQuadrichama = usoQuadrichama;
     }
 
-    public List<ProdutoIngrediente> getIngredientes() {
-        return ingredientes;
+    public Boolean getUsoRapido() {
+        return usoRapido;
     }
 
-    public void setIngredientes(List<ProdutoIngrediente> ingredientes) {
-        this.ingredientes = ingredientes;
+    public void setUsoRapido(Boolean usoRapido) {
+        this.usoRapido = usoRapido;
+    }
+
+    public Boolean getUsoSemirapido() {
+        return usoSemirapido;
+    }
+
+    public void setUsoSemirapido(Boolean usoSemirapido) {
+        this.usoSemirapido = usoSemirapido;
+    }
+
+    public String getFonteAgua() {
+        return fonteAgua;
+    }
+
+    public void setFonteAgua(String fonteAgua) {
+        this.fonteAgua = fonteAgua;
+    }
+
+    public Double getQuantidadeGaloes() {
+        return quantidadeGaloes;
+    }
+
+    public void setQuantidadeGaloes(Double quantidadeGaloes) {
+        this.quantidadeGaloes = quantidadeGaloes;
+    }
+
+    public Double getMetrosCubicosAgua() {
+        return metrosCubicosAgua;
+    }
+
+    public void setMetrosCubicosAgua(Double metrosCubicosAgua) {
+        this.metrosCubicosAgua = metrosCubicosAgua;
+    }
+
+    public Double getCustoAgua() {
+        return custoAgua;
+    }
+
+    public void setCustoAgua(Double custoAgua) {
+        this.custoAgua = custoAgua;
+    }
+
+    public Double getCustoGas() {
+        return custoGas;
+    }
+
+    public void setCustoGas(Double custoGas) {
+        this.custoGas = custoGas;
+    }
+
+    public Double getCustoEnergia() {
+        return custoEnergia;
+    }
+
+    public void setCustoEnergia(Double custoEnergia) {
+        this.custoEnergia = custoEnergia;
     }
 }

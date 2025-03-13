@@ -91,21 +91,35 @@
                     <tr th:each="produto : ${produtos}">
                         <td th:text="${produto.sabor}"></td>
                         <td class="mobile-hide">
-                                    <span th:each="ing : ${produto.ingredientes}"
-                                          class="badge bg-light text-dark me-1"
-                                          th:text="${ing.ingrediente.nome}"></span>
+                    <span th:each="ing : ${produto.ingredientes}"
+                          class="badge bg-light text-dark me-1"
+                          th:text="${ing.ingrediente.nome}"></span>
                         </td>
                         <td>
-                                    <span th:class="${produto.estoqueAtual < 10} ? 'text-danger fw-bold' : ''"
-                                          th:text="${produto.estoqueAtual}"></span>
+                    <span th:class="${produto.estoqueAtual < 10} ? 'text-danger fw-bold' : ''"
+                          th:text="${produto.estoqueAtual}"></span>
                         </td>
                         <td>
-                            <a th:href="@{/geladinhos/editar/{id}(id=${produto.id})}"
-                               class="btn btn-warning btn-sm">
+                            <!-- Botão Editar -->
+                            <button class="btn btn-warning btn-sm btn-editar-geladinho"
+                                    data-id="${produto.id}"
+                                    data-sabor="${produto.sabor}"
+                                    data-estoque-inicial="${produto.estoqueInicial}"
+                                    data-estoque-atual="${produto.estoqueAtual}">
                                 <i class="bi bi-pencil"></i>
                                 <span class="d-none d-md-inline">Editar</span>
-                            </a>
+                            </button>
+
+                            <!-- Botão Deletar -->
+                            <form th:action="@{/geladinhos/deletar}" method="post" class="d-inline">
+                                <input type="hidden" name="id" th:value="${produto.id}">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja deletar este produto?')">
+                                    <i class="bi bi-trash"></i>
+                                    <span class="d-none d-md-inline">Deletar</span>
+                                </button>
+                            </form>
                         </td>
+
                     </tr>
                     </tbody>
                 </table>
@@ -114,9 +128,89 @@
     </div>
 </div>
 
+<!-- Modal de Edição de Geladinho -->
+<div class="modal fade" id="editarGeladinhoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Geladinho</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarGeladinho" th:action="@{/geladinhos/editar}" method="post">
+                    <input type="hidden" id="editarGeladinhoId" name="id">
+
+                    <!-- Sabor -->
+                    <div class="mb-3">
+                        <label class="form-label">Sabor do Geladinho</label>
+                        <input type="text" class="form-control" id="editarGeladinhoSabor" name="sabor" required>
+                    </div>
+
+                    <!-- Estoque -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Estoque Inicial</label>
+                            <input type="number" class="form-control" id="editarGeladinhoEstoqueInicial" name="estoqueInicial" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Estoque Atual</label>
+                            <input type="number" class="form-control" id="editarGeladinhoEstoqueAtual" name="estoqueAtual" required>
+                        </div>
+                    </div>
+
+                    <!-- Ingredientes -->
+                    <div class="mb-3">
+                        <label class="form-label">Ingredientes</label>
+                        <div id="editarGeladinhoIngredientesContainer">
+                            <!-- Os ingredientes serão carregados dinamicamente via JavaScript -->
+                        </div>
+                        <button type="button" class="btn btn-sm btn-ice mt-2" onclick="adicionarIngredienteEdicao()">
+                            <i class="bi bi-plus-circle me-2"></i>Adicionar Ingrediente
+                        </button>
+                    </div>
+
+                    <!-- Botão de Submit -->
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-lg btn-ice">
+                            <i class="bi bi-save2-fill me-2"></i>
+                            Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="/js/scripts.js"></script>
+
+<script>
+    console.log("Script carregado!");
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const botoesEditar = document.querySelectorAll('.btn-editar-geladinho');
+        const modal = new bootstrap.Modal(document.getElementById('editarGeladinhoModal'));
+
+        botoesEditar.forEach(botao => {
+            botao.addEventListener('click', function() {
+                console.log("Botão de editar clicado!");
+
+                document.getElementById('editarGeladinhoId').value = this.getAttribute('data-id');
+                document.getElementById('editarGeladinhoSabor').value = this.getAttribute('data-sabor');
+                document.getElementById('editarGeladinhoEstoqueInicial').value = this.getAttribute('data-estoque-inicial');
+                document.getElementById('editarGeladinhoEstoqueAtual').value = this.getAttribute('data-estoque-atual');
+
+                modal.show();
+            });
+        });
+    });
+</script>
+
+
 <!-- Bootstrap JS e Ícones -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-<script src="/js/scripts.js"></script>
+
 </body>
 </html>

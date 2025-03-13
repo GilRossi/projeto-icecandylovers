@@ -1,7 +1,11 @@
 package com.icecandylovers.services;
 
+import com.icecandylovers.dtos.ProdutoDTO;
+import com.icecandylovers.dtos.ProdutoIngredienteDTO;
 import com.icecandylovers.entities.Ingrediente;
 import com.icecandylovers.entities.Produto;
+import com.icecandylovers.entities.ProdutoIngrediente;
+import com.icecandylovers.exceptions.ResourceNotFoundException;
 import com.icecandylovers.repositories.IngredienteRepository;
 import com.icecandylovers.repositories.ProdutoIngredienteRepository;
 import com.icecandylovers.repositories.ProdutoRepository;
@@ -12,38 +16,168 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import com.icecandylovers.entities.ProdutoIngrediente;
-
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProdutoService {
 
     private final ProdutoRepository produtoRepository;
     private final IngredienteRepository ingredienteRepository;
-    private final IngredienteService ingredienteService;
     private final ProdutoIngredienteRepository produtoIngredienteRepository;
-
 
     @Autowired
     public ProdutoService(ProdutoRepository produtoRepository,
                           IngredienteRepository ingredienteRepository,
-                          IngredienteService ingredienteService,
                           ProdutoIngredienteRepository produtoIngredienteRepository) {
         this.produtoRepository = produtoRepository;
         this.ingredienteRepository = ingredienteRepository;
-        this.ingredienteService = ingredienteService;
         this.produtoIngredienteRepository = produtoIngredienteRepository;
     }
 
-    // Operações CRUD básicas
-    public Produto salvarProduto(Produto produto) {
+    @Transactional
+    public Produto salvarProduto(ProdutoDTO produtoDTO) {
+        Produto produto = new Produto();
+        produto.setSabor(produtoDTO.sabor());
+        produto.setEstoqueInicial(produtoDTO.estoqueInicial());
+        produto.setEstoqueAtual(produtoDTO.estoqueAtual());
+        produto.setPrecoCusto(produtoDTO.precoCusto());
+
+        List<ProdutoIngrediente> ingredientes = produtoDTO.ingredientes().stream()
+                .map(dto -> {
+                    ProdutoIngrediente ingrediente = new ProdutoIngrediente();
+                    ingrediente.setProduto(produto);
+                    ingrediente.setIngrediente(ingredienteRepository.findById(dto.ingredienteId())
+                            .orElseThrow(() -> new IllegalArgumentException("Ingrediente não encontrado")));
+                    ingrediente.setQuantidade(BigDecimal.valueOf(dto.quantidade())); // Conversão correta
+                    return ingrediente;
+                })
+                .collect(Collectors.toList());
+
+        produto.getIngredientes().clear();
+        produto.getIngredientes().addAll(ingredientes);
+
         return produtoRepository.save(produto);
     }
 
+    public void deletarProduto(Long id) {
+        produtoRepository.deleteById(id);
+    }
+
+    public ProdutoDTO converterParaDTO(Produto produto) {
+        List<ProdutoIngredienteDTO> ingredientesDTO = produto.getIngredientes().stream()
+                .map(this::converterIngredienteParaDTO)
+                .collect(Collectors.toList());
+
+        return new ProdutoDTO(
+                produto.getId(),
+                produto.getSabor(),
+                produto.getEstoqueInicial(),
+                produto.getEstoqueAtual(),
+                produto.getPrecoCusto(),
+                ingredientesDTO,
+                produto.getFonteAgua(),
+                produto.getQuantidadeGaloes(),
+                produto.getMetrosCubicosAgua(),
+                produto.getHorasGas(),
+                produto.getKwh(),
+                produto.getTaxaAgua(),
+                produto.getTaxaGas(),
+                produto.getTaxaEnergia(),
+                produto.getUsoQuadrichama(),
+                produto.getUsoRapido(),
+                produto.getUsoSemirapido()
+        );
+    }
+
+    private ProdutoIngredienteDTO converterIngredienteParaDTO(ProdutoIngrediente produtoIngrediente) {
+        return new ProdutoIngredienteDTO(
+                produtoIngrediente.getIngrediente().getId(),
+                produtoIngrediente.getQuantidade().doubleValue()
+        );
+    }
+
+    public Produto criarProdutoAPartirDoDTO(ProdutoDTO produtoDTO) {
+        Produto produto = new Produto();
+        produto.setSabor(produtoDTO.sabor());
+        produto.setEstoqueInicial(produtoDTO.estoqueInicial());
+        produto.setEstoqueAtual(produtoDTO.estoqueAtual());
+        produto.setPrecoCusto(produtoDTO.precoCusto());
+        produto.setFonteAgua(produtoDTO.fonteAgua());
+        produto.setQuantidadeGaloes(produtoDTO.quantidadeGaloes());
+        produto.setMetrosCubicosAgua(produtoDTO.metrosCubicosAgua());
+        produto.setHorasGas(produtoDTO.horasGas());
+        produto.setKwh(produtoDTO.kwh());
+        produto.setTaxaAgua(produtoDTO.taxaAgua());
+        produto.setTaxaGas(produtoDTO.taxaGas());
+        produto.setTaxaEnergia(produtoDTO.taxaEnergia());
+        produto.setUsoQuadrichama(produtoDTO.usoQuadrichama());
+        produto.setUsoRapido(produtoDTO.usoRapido());
+        produto.setUsoSemirapido(produtoDTO.usoSemirapido());
+
+        // Preço de venda será definido apenas na venda
+        produto.setPrecoVenda(null);
+
+        return produto;
+    }
+
+
+    private void salvarIngredientesDoProduto(Produto produto, List<ProdutoIngredienteDTO> ingredientesDTO) {
+        List<ProdutoIngrediente> ingredientes = ingredientesDTO.stream()
+                .map(ingredienteDTO -> criarProdutoIngrediente(produto, ingredienteDTO))
+                .collect(Collectors.toList());
+
+        produtoIngredienteRepository.saveAll(ingredientes);
+        produto.setIngredientes(ingredientes);
+    }
+
+    private ProdutoIngrediente criarProdutoIngrediente(Produto produto, ProdutoIngredienteDTO ingredienteDTO) {
+        Ingrediente ingrediente = ingredienteRepository.findById(ingredienteDTO.ingredienteId())
+                .orElseThrow(() -> new ResourceNotFoundException("Ingrediente não encontrado"));
+
+        ProdutoIngrediente produtoIngrediente = new ProdutoIngrediente();
+        produtoIngrediente.setProduto(produto);
+        produtoIngrediente.setIngrediente(ingrediente);
+        produtoIngrediente.setQuantidade(BigDecimal.valueOf(ingredienteDTO.quantidade()));
+        return produtoIngrediente;
+    }
+
+    @Transactional
+    public BigDecimal calcularCusto(Long produtoId) {
+        Produto produto = buscarProdutoPorId(produtoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado"));
+
+        return produto.getIngredientes().stream()
+                .map(produtoIngrediente -> produtoIngrediente.getIngrediente()
+                        .getCustoPorUnidade()
+                        .multiply(produtoIngrediente.getQuantidade()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    @Transactional
+    public void produzirProduto(Long produtoId, int quantidadeProduzida) {
+        Produto produto = buscarProdutoPorId(produtoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado"));
+
+        produto.getIngredientes().forEach(produtoIngrediente -> {
+            Ingrediente ingrediente = produtoIngrediente.getIngrediente();
+            BigDecimal quantidadeNecessaria = produtoIngrediente.getQuantidade().multiply(BigDecimal.valueOf(quantidadeProduzida));
+
+            if (ingrediente.getEstoqueAtual().compareTo(quantidadeNecessaria) < 0) {
+                throw new ResourceNotFoundException("Estoque insuficiente para o ingrediente: " + ingrediente.getNome());
+            }
+
+            ingrediente.setEstoqueAtual(ingrediente.getEstoqueAtual().subtract(quantidadeNecessaria));
+            ingredienteRepository.save(ingrediente);
+        });
+
+        produto.setEstoqueAtual(produto.getEstoqueAtual() + quantidadeProduzida);
+        produtoRepository.save(produto);
+    }
+
     public List<Produto> listarTodosProdutos() {
-        return produtoRepository.findAllWithIngredientes();
+        return produtoRepository.findAll();
     }
 
     public Optional<Produto> buscarProdutoPorId(Long id) {
@@ -54,106 +188,34 @@ public class ProdutoService {
         produtoRepository.deleteById(id);
     }
 
-    // Cálculo de custo do produto
-    @Transactional
-    public BigDecimal calcularCusto(Long produtoId) {
-        Produto produto = produtoRepository.findById(produtoId)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
-
-        return produto.getIngredientes().stream()
-                .map(produtoIngrediente ->
-                        produtoIngrediente.getIngrediente() // Acessa o ingrediente corretamente
-                                .getCustoPorUnidade()
-                                .multiply(produtoIngrediente.getQuantidade()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    // Produção de novos produtos
-    @Transactional
-    public void produzirProduto(Long produtoId, int quantidadeProduzida) {
-        Produto produto = produtoRepository.findById(produtoId)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
-
-        // Atualizar estoque de ingredientes
-        for (ProdutoIngrediente produtoIngrediente : produto.getIngredientes()) {
-            Ingrediente ingrediente = produtoIngrediente.getIngrediente();
-            BigDecimal quantidadeNecessaria = produtoIngrediente.getQuantidade().multiply(BigDecimal.valueOf(quantidadeProduzida));
-
-            if (ingrediente.getEstoqueAtual().compareTo(quantidadeNecessaria) < 0) {
-                throw new RuntimeException("Estoque insuficiente para o ingrediente: " + ingrediente.getNome());
-            }
-
-            // Atualiza estoque do ingrediente
-            ingrediente.setEstoqueAtual(ingrediente.getEstoqueAtual().subtract(quantidadeNecessaria));
-            ingredienteRepository.save(ingrediente);
-        }
-
-        // Atualiza estoque do produto
-        produto.setEstoqueAtual(produto.getEstoqueAtual() + quantidadeProduzida);
-        produtoRepository.save(produto);
-    }
-
-    // Métodos adicionais úteis
     public boolean verificarEstoqueSuficiente(Long produtoId, int quantidade) {
-        Produto produto = produtoRepository.findById(produtoId)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
+        Produto produto = buscarProdutoPorId(produtoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado"));
         return produto.getEstoqueAtual() >= quantidade;
     }
 
     @Transactional
     public void atualizarEstoque(Long produtoId, int quantidade) {
-        Produto produto = produtoRepository.findById(produtoId)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
+        Produto produto = buscarProdutoPorId(produtoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado"));
 
         int novoEstoque = produto.getEstoqueAtual() + quantidade;
         if (novoEstoque < 0) {
-            throw new RuntimeException("Estoque não pode ser negativo");
+            throw new ResourceNotFoundException("Estoque não pode ser negativo");
         }
 
         produto.setEstoqueAtual(novoEstoque);
         produtoRepository.save(produto);
     }
 
-    @Transactional
-    public void salvarProdutoComIngredientes(Produto produto, Map<String, String> params) {
-
-        List<ProdutoIngrediente> ingredientes = new ArrayList<>();
-
-        Produto savedProduto = produtoRepository.save(produto);
-
-        params.keySet().stream()
-                .filter(key -> key.startsWith("ingredientes["))
-                .forEach(key -> {
-                    String index = key.replaceAll("\\D+", "");
-                    Long ingredienteId = Long.parseLong(params.get("ingredientes[" + index + "].ingrediente.id"));
-                    BigDecimal quantidade = new BigDecimal(params.get("ingredientes[" + index + "].quantidade"));
-
-                    Ingrediente ingrediente = ingredienteService.buscarPorId(ingredienteId)
-                            .orElseThrow(() -> new RuntimeException("Ingrediente não encontrado"));
-
-                    ProdutoIngrediente pi = new ProdutoIngrediente();
-                    pi.setProduto(savedProduto);
-                    pi.setIngrediente(ingrediente);
-                    pi.setQuantidade(quantidade);
-
-                    produtoIngredienteRepository.save(pi);
-                    ingredientes.add(pi);
-                });
-
-        savedProduto.setIngredientes(ingredientes);
-        produtoRepository.save(savedProduto);
-    }
-
     public int calcularTotalEstoque() {
         return produtoRepository.sumEstoqueAtual();
     }
-    public void decrementarEstoque(Long produtoId, Integer quantidade) {
-        Produto produto = produtoRepository.findById(produtoId).orElseThrow();
+
+    public void decrementarEstoque(Long produtoId, int quantidade) {
+        Produto produto = buscarProdutoPorId(produtoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado"));
         produto.setEstoqueAtual(produto.getEstoqueAtual() - quantidade);
         produtoRepository.save(produto);
-    }
-    public Produto buscarPorId(Long id) {
-        return produtoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
     }
 }

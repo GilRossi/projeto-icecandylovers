@@ -1,36 +1,43 @@
 package com.icecandylovers.controllers;
 
 import com.icecandylovers.dtos.VendaDTO;
-import com.icecandylovers.services.ProdutoService;
+import com.icecandylovers.entities.Venda;
 import com.icecandylovers.services.VendaService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
-@RequestMapping("/vendas")
+import java.math.BigDecimal;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/vendas")
 public class VendaController {
 
     @Autowired
     private VendaService vendaService;
 
-    @Autowired
-    private ProdutoService produtoService;
-
-    @GetMapping("/nova")
-    public String exibirFormVenda(Model model) {
-        model.addAttribute("venda", new VendaDTO());
-        model.addAttribute("produtos", produtoService.listarTodosProdutos());
-        return "venda-form";
+    @GetMapping("/recentes")
+    public ResponseEntity<List<Venda>> obterVendasRecentes() {
+        List<Venda> vendasRecentes = vendaService.obterVendasRecentes();
+        return ResponseEntity.ok(vendasRecentes);
     }
 
-    @PostMapping("/nova")
-    public String processarVenda(@ModelAttribute VendaDTO vendaDTO) {
+    @GetMapping("/hoje")
+    public ResponseEntity<BigDecimal> calcularVendasHoje() {
+        BigDecimal totalVendasHoje = vendaService.calcularVendasHoje();
+        return ResponseEntity.ok(totalVendasHoje);
+    }
+
+    @GetMapping("/recentes/top5")
+    public ResponseEntity<List<Venda>> listarVendasRecentes() {
+        List<Venda> vendasRecentes = vendaService.listarVendasRecentes();
+        return ResponseEntity.ok(vendasRecentes);
+    }
+
+    @PostMapping("/registrar")
+    public ResponseEntity<String> registrarVenda(@RequestBody VendaDTO vendaDTO) {
         vendaService.registrarVenda(vendaDTO);
-        return "redirect:/dashboard";
+        return ResponseEntity.ok("Venda registrada com sucesso!");
     }
 }

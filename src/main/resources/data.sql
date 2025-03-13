@@ -18,7 +18,7 @@ INSERT INTO produto_ingrediente (produto_id, ingrediente_id, quantidade) VALUES
 
 -- Inserção de dados na tabela Taxa
 INSERT INTO taxa (agua, energia, taxa_gas, preco_galao, capacidade_galao, agua_torneira) VALUES
-(5.00, 0.50, 2.00, 20.00, 20.00, 0.10);
+(5.00, 7.24, 11.50, 17.00, 20.00, 0.10);
 
 -- Inserção de dados na tabela Venda
 INSERT INTO venda (produto_id, quantidade, data_venda, total) VALUES
@@ -29,3 +29,5 @@ INSERT INTO venda (produto_id, quantidade, data_venda, total) VALUES
 INSERT INTO venda_item (venda_id, produto_id, quantidade, preco_unitario) VALUES
 (1, 1, 2, 5.00),
 (2, 2, 3, 6.00);
+
+ALTER TABLE produto ALTER COLUMN preco_venda DROP NOT NULL;

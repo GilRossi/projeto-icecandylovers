@@ -1,16 +1,20 @@
 package com.icecandylovers.controllers;
 
-import com.icecandylovers.entities.ProdutoIngrediente;
+import com.icecandylovers.dtos.ProdutoDTO;
+import com.icecandylovers.dtos.ProdutoIngredienteDTO;
+import com.icecandylovers.entities.Produto;
+import com.icecandylovers.services.GeladinhoService;
 import com.icecandylovers.services.IngredienteService;
 import com.icecandylovers.services.TaxaService;
-import org.springframework.ui.Model;
-import com.icecandylovers.entities.Produto;
 import com.icecandylovers.services.ProdutoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/geladinhos")
@@ -19,93 +23,191 @@ public class GeladinhoController {
     private final ProdutoService produtoService;
     private final IngredienteService ingredienteService;
     private final TaxaService taxaService;
+    private final GeladinhoService geladinhoService;
 
     @Autowired
     public GeladinhoController(ProdutoService produtoService,
                                IngredienteService ingredienteService,
-                               TaxaService taxaService) {
+                               TaxaService taxaService,
+                               GeladinhoService geladinhoService) {
         this.produtoService = produtoService;
         this.ingredienteService = ingredienteService;
         this.taxaService = taxaService;
+        this.geladinhoService = geladinhoService;
     }
 
     @GetMapping("/editar/{id}")
     public String editarGeladinho(@PathVariable Long id, Model model) {
-        Produto produto = produtoService.buscarProdutoPorId(id)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
-        model.addAttribute("produto", produto);
-        model.addAttribute("allIngredientes", ingredienteService.listarTodos());
-        return "cadastro-geladinho";
+        try {
+            // Verifica se o ID é válido
+            if (id == null || id <= 0) {
+                model.addAttribute("erro", "ID do produto inválido");
+                return "redirect:/dashboard"; // Redireciona para a dashboard em caso de erro
+            }
+
+            // Busca o produto pelo ID
+            Optional<Produto> produtoOptional = produtoService.buscarProdutoPorId(id);
+            if (produtoOptional.isEmpty()) {
+                model.addAttribute("erro", "Produto não encontrado");
+                return "redirect:/dashboard"; // Redireciona para a dashboard em caso de erro
+            }
+
+            // Converte a entidade Produto para ProdutoDTO
+            Produto produto = produtoOptional.get();
+            ProdutoDTO produtoDTO = convertToProdutoDTO(produto);
+
+            // Adiciona o produto e os ingredientes ao modelo
+            model.addAttribute("produto", produtoDTO);
+            model.addAttribute("allIngredientes", ingredienteService.listarTodos());
+
+            // Adiciona as taxas ao modelo (se necessário)
+            model.addAttribute("taxaQuadrichama", taxaService.getTaxaQuadrichama());
+            model.addAttribute("taxaRapido", taxaService.getTaxaRapido());
+            model.addAttribute("taxaSemiRapido", taxaService.getTaxaSemiRapido());
+
+            return "cadastro-geladinho"; // Retorna a página de edição
+        } catch (Exception e) {
+            // Log do erro
+            System.err.println("Erro ao editar geladinho: " + e.getMessage());
+            model.addAttribute("erro", "Erro ao editar o produto");
+            return "redirect:/dashboard"; // Redireciona para a dashboard em caso de erro
+        }
     }
+
+    @PostMapping("/editar")
+    public String editarGeladinho(@ModelAttribute ProdutoDTO produtoDTO, Model model) {
+        try {
+            Produto produto = convertToProduto(produtoDTO);
+            geladinhoService.atualizar(produto);
+            model.addAttribute("mensagem", "Geladinho atualizado com sucesso!");
+        } catch (Exception e) {
+            model.addAttribute("erro", "Erro ao atualizar o geladinho: " + e.getMessage());
+        }
+        return "redirect:/dashboard";
+    }
+
 
     @PostMapping("/salvar")
-    public String salvarGeladinho(@ModelAttribute("produto") Produto produto, Model model) {
+    public String salvarGeladinho(@ModelAttribute ProdutoDTO produtoDTO, Model model) {
+        System.out.println("ProdutoDTO recebido: " + produtoDTO);
+
+        // Filtrando ingredientes sem ID
+        produtoDTO = new ProdutoDTO(
+                produtoDTO.id(),
+                produtoDTO.sabor(),
+                produtoDTO.estoqueInicial(),
+                produtoDTO.estoqueAtual(),
+                produtoDTO.precoCusto(),
+                produtoDTO.ingredientes().stream()
+                        .filter(ing -> ing.ingredienteId() != null)
+                        .toList(),
+                produtoDTO.fonteAgua(),
+                produtoDTO.quantidadeGaloes(),
+                produtoDTO.metrosCubicosAgua(),
+                produtoDTO.horasGas(),
+                produtoDTO.kwh(),
+                produtoDTO.taxaAgua(),
+                produtoDTO.taxaGas(),
+                produtoDTO.taxaEnergia(),
+                produtoDTO.usoQuadrichama(),
+                produtoDTO.usoRapido(),
+                produtoDTO.usoSemirapido()
+        );
+
         try {
-            // Calcula o preço de custo
-            double precoCusto = calcularCustoTotal(produto);
-            produto.setPrecoCusto(precoCusto);
-
-            // Salva o produto no banco de dados
-            produtoService.salvarProduto(produto);
-
-            // Adiciona o objeto atualizado ao modelo
-            model.addAttribute("produto", produto);
-            model.addAttribute("mensagem", "Produto salvo com sucesso!");
+            produtoService.salvarProduto(produtoDTO);
+            model.addAttribute("mensagem", "Geladinho salvo com sucesso!");
         } catch (Exception e) {
-            model.addAttribute("erro", "Erro ao salvar o produto: " + e.getMessage());
+            model.addAttribute("erro", "Erro ao salvar o geladinho: " + e.getMessage());
         }
-
         return "cadastro-geladinho";
     }
 
-    private double calcularCustoTotal(Produto produto) {
-        double custoTotal = 0;
-
-        // Custo dos ingredientes
-        for (ProdutoIngrediente ingrediente : produto.getIngredientes()) {
-            if (ingrediente.getIngrediente() != null && ingrediente.getQuantidade() != null) {
-                double custoUnitario = ingrediente.getIngrediente().getCustoPorUnidade().doubleValue();
-                double quantidade = ingrediente.getQuantidade().doubleValue();
-                if (custoUnitario > 0 && quantidade > 0) {
-                    custoTotal += custoUnitario * quantidade;
-                }
-            }
-        }
-
-        // Custo da água
-        if (produto.getFonteAgua() != null && produto.getTaxaAgua() != null) {
-            if (produto.getFonteAgua().equals("GALAO") && produto.getQuantidadeGaloes() != null) {
-                custoTotal += produto.getQuantidadeGaloes() * produto.getTaxaAgua();
-            } else if (produto.getFonteAgua().equals("TORNEIRA") && produto.getMetrosCubicosAgua() != null) {
-                custoTotal += produto.getMetrosCubicosAgua() * produto.getTaxaAgua();
-            }
-        }
-
-        // Custo do gás
-        if (produto.getHorasGas() != null && produto.getTaxaGas() != null) {
-            if (produto.getHorasGas() > 0 && produto.getTaxaGas() > 0) {
-                custoTotal += produto.getHorasGas() * produto.getTaxaGas();
-            }
-        }
-
-        //Custo de Energia
-        if (produto.getKwh() != null && produto.getTaxaEnergia() != null) {
-            custoTotal += produto.getKwh() * produto.getTaxaEnergia();
-        }
-
-        return custoTotal;
-    }
 
     @GetMapping("/novo")
     public String showCadastroForm(Model model) {
-        model.addAttribute("produto", new Produto());
+        ProdutoDTO produtoDTO = new ProdutoDTO(
+                null, // id
+                "", // sabor
+                0, // estoqueInicial
+                0, // estoqueAtual
+                0.0, // precoCusto
+                new ArrayList<>(), // ingredientes
+                "", // fonteAgua
+                0.0, // quantidadeGaloes
+                0.0, // metrosCubicosAgua
+                0.0, // horasGas
+                0.0, // kwh
+                0.0, // taxaAgua
+                0.0, // taxaGas
+                0.0, // taxaEnergia
+                false, // usoQuadrichama
+                false, // usoRapido
+                false // usoSemirapido
+        );
+
+        System.out.println("ProdutoDTO inicializado: " + produtoDTO); // 🚀 Log para depuração
+
+        model.addAttribute("produto", produtoDTO);
         model.addAttribute("allIngredientes", ingredienteService.listarTodos());
-
-        // Taxas de gás fogão/cooktop
-        model.addAttribute("taxaQuadrichama", taxaService.getTaxaQuadrichama());
-        model.addAttribute("taxaRapido", taxaService.getTaxaRapido());
-        model.addAttribute("taxaSemiRapido", taxaService.getTaxaSemiRapido());
-
         return "cadastro-geladinho";
     }
+
+
+
+    // Método para converter Produto para ProdutoDTO
+    private ProdutoDTO convertToProdutoDTO(Produto produto) {
+        List<ProdutoIngredienteDTO> ingredientesDTO = produto.getIngredientes().stream()
+                .map(pi -> new ProdutoIngredienteDTO(pi.getIngrediente().getId(), pi.getQuantidade().doubleValue()))
+                .toList();
+
+        return new ProdutoDTO(
+                produto.getId(),
+                produto.getSabor(),
+                produto.getEstoqueInicial(),
+                produto.getEstoqueAtual(),
+                produto.getPrecoCusto(),
+                ingredientesDTO,
+                produto.getFonteAgua(),
+                produto.getQuantidadeGaloes(),
+                produto.getMetrosCubicosAgua(),
+                produto.getHorasGas(),
+                produto.getKwh(),
+                produto.getTaxaAgua(),
+                produto.getTaxaGas(),
+                produto.getTaxaEnergia(),
+                produto.getUsoQuadrichama(),
+                produto.getUsoRapido(),
+                produto.getUsoSemirapido()
+        );
+    }
+
+    @PostMapping("/deletar")
+    public String deletarGeladinho(@RequestParam Long id) {
+        geladinhoService.deletar(id);
+        return "redirect:/dashboard";
+    }
+    private Produto convertToProduto(ProdutoDTO produtoDTO) {
+        Produto produto = new Produto();
+        produto.setId(produtoDTO.id());
+        produto.setSabor(produtoDTO.sabor());
+        produto.setEstoqueInicial(produtoDTO.estoqueInicial());
+        produto.setEstoqueAtual(produtoDTO.estoqueAtual());
+        produto.setPrecoCusto(produtoDTO.precoCusto());
+        produto.setFonteAgua(produtoDTO.fonteAgua());
+        produto.setQuantidadeGaloes(produtoDTO.quantidadeGaloes());
+        produto.setMetrosCubicosAgua(produtoDTO.metrosCubicosAgua());
+        produto.setHorasGas(produtoDTO.horasGas());
+        produto.setKwh(produtoDTO.kwh());
+        produto.setTaxaAgua(produtoDTO.taxaAgua());
+        produto.setTaxaGas(produtoDTO.taxaGas());
+        produto.setTaxaEnergia(produtoDTO.taxaEnergia());
+        produto.setUsoQuadrichama(produtoDTO.usoQuadrichama());
+        produto.setUsoRapido(produtoDTO.usoRapido());
+        produto.setUsoSemirapido(produtoDTO.usoSemirapido());
+        return produto;
+    }
+
+
+
 }

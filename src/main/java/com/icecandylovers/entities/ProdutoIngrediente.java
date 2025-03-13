@@ -8,17 +8,16 @@ import java.util.Objects;
 
 @Entity
 public class ProdutoIngrediente {
+
     @EmbeddedId
     private ProdutoIngredienteId id = new ProdutoIngredienteId();
 
     @ManyToOne
-    @MapsId("produtoId") // Refere-se ao campo "produtoId" em ProdutoIngredienteId
-    @JoinColumn(name = "produto_id")
+    @MapsId("produtoId")
     private Produto produto;
 
     @ManyToOne
-    @MapsId("ingredienteId") // Refere-se ao campo "ingredienteId" em ProdutoIngredienteId
-    @JoinColumn(name = "ingrediente_id")
+    @MapsId("ingredienteId")
     private Ingrediente ingrediente;
 
     private BigDecimal quantidade;
@@ -61,14 +60,14 @@ public class ProdutoIngrediente {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ProdutoIngrediente)) return false; // Corrigido para ProdutoIngrediente
+        if (o == null || getClass() != o.getClass()) return false;
         ProdutoIngrediente that = (ProdutoIngrediente) o;
-        return Objects.equals(id.getProdutoId(), that.id.getProdutoId()) && // Acesso via getId()
+        return Objects.equals(id.getProdutoId(), that.id.getProdutoId()) &&
                 Objects.equals(id.getIngredienteId(), that.id.getIngredienteId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id.getProdutoId(), id.getIngredienteId()); // Acesso via getId()
+        return Objects.hash(id.getProdutoId(), id.getIngredienteId());
     }
 }

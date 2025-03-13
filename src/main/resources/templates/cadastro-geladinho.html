@@ -76,31 +76,48 @@
                             </div>
                             <div class="card-body">
                                 <div class="row g-3">
-                                    <!-- Sabor -->
-                                    <div class="col-md-12">
+                                    <!-- Sabor (obrigatório) -->
+                                    <div class="mb-3">
                                         <label class="form-label">Sabor do Geladinho</label>
-                                        <input class="form-control" required th:field="*{sabor}" type="text">
+                                        <input class="form-control"
+                                               th:field="*{sabor}"
+                                               type="text"
+                                               name="sabor"
+                                               required
+                                               placeholder="Digite o sabor">
                                     </div>
 
+
                                     <!-- Estoque -->
-                                    <div class="col-md-4">
+                                    <div class="mb-3">
                                         <label class="form-label">Estoque Inicial</label>
-                                        <input class="form-control" required th:field="*{estoqueInicial}" type="number">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Estoque Atual</label>
-                                        <input class="form-control" required th:field="*{estoqueAtual}" type="number">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Preço de Custo</label>
                                         <input class="form-control"
-                                               name="precoCusto"
-                                               th:field="*{precoCusto}"
-                                               readonly
-                                               step="0.01"
+                                               th:field="*{estoqueInicial}"
                                                type="number"
-                                               id="precoCusto">
+                                               min="0"
+                                               value="0"
+                                               required>
                                     </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Estoque Atual</label>
+                                        <input class="form-control"
+                                               th:field="*{estoqueAtual}"
+                                               type="number"
+                                               min="0"
+                                               value="0"
+                                               required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="precoCusto" class="form-label">Preço de Custo (R$)</label>
+                                        <input class="form-control"
+                                               id="precoCusto"
+                                               name="precoCusto"
+                                               type="text"
+                                               readonly
+                                               value="0.00">
+                                    </div>
+
+
                                 </div>
                             </div>
                         </div>
@@ -122,39 +139,38 @@
                                     </button>
                                 </div>
 
-                                <div id="ingredientes-container" style="max-height: 300px; overflow-y: auto;">
-                                    <!-- Item de Ingrediente (Loop para edição) -->
-                                    <div class="ingrediente-item row g-2 mb-2"
-                                         th:each="prodIngrediente, stat : *{ingredientes}"
-                                         th:object="${prodIngrediente}">
+                                <!-- Ingredientes -->
+                                <div id="ingredientes-container">
+                                    <div class="ingrediente-item row g-2 mb-2" th:each="prodIngrediente, stat : *{ingredientes}">
                                         <div class="col-5">
-                                            <select class="form-select" th:field="*{ingrediente.id}">
+                                            <select class="form-select" th:field="*{ingredientes[__${stat.index}__].ingredienteId}">
                                                 <option value="">Selecione um ingrediente</option>
-                                                <option th:data-custo="${ing.custoPorUnidade}"
-                                                        th:each="ing : ${allIngredientes}"
-                                                        th:text="${ing.nome}"
-                                                        th:value="${ing.id}">
+                                                <option th:each="ing : ${allIngredientes}"
+                                                        th:value="${ing.id}"
+                                                        th:text="${ing.nome ?: 'Ingrediente Desconhecido'}">
                                                 </option>
                                             </select>
                                         </div>
                                         <div class="col-5">
-                                            <input class="form-control quantidade-input" onchange="updateCusto(this)" placeholder="Quantidade"
-                                                   required
-                                                   step="0.1" th:field="*{quantidade}"
-                                                   type="number">
+                                            <input class="form-control"
+                                                   type="number"
+                                                   th:field="*{ingredientes[__${stat.index}__].quantidade}"
+                                                   placeholder="Quantidade"
+                                                   min="0"
+                                                   step="0.1"
+                                                   required>
                                         </div>
                                         <div class="col-2">
-                                            <i class="bi bi-x-circle-fill text-danger remove-ingrediente"
+                                            <i class="bi bi-x-circle-fill text-danger"
                                                onclick="removeIngrediente(this)"
-                                               style="cursor:pointer; font-size:1.2rem;"></i>
+                                               style="cursor:pointer;"></i>
                                         </div>
                                     </div>
                                 </div>
 
-                                <button class="btn btn-sm btn-ice" onclick="addIngrediente()"
-                                        type="button">
-                                    <i class="bi bi-plus-circle me-2"></i>Adicionar Linha
-                                </button>
+
+                                <!-- Botão para adicionar novo ingrediente -->
+                                <button class="btn btn-sm btn-ice" type="button" onclick="addIngrediente()"><i class="bi bi-plus-circle me-2"></i>Adicionar Linha</button>
                             </div>
                         </div>
 
@@ -164,6 +180,7 @@
                                 <h5 class="mb-0">Custos Fixos</h5>
                             </div>
                             <div class="card-body">
+
                                 <!-- Subseção Água -->
                                 <div class="card mb-3">
                                     <div class="card-header bg-light">

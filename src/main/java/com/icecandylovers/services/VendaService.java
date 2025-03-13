@@ -4,7 +4,9 @@ import com.icecandylovers.dtos.VendaDTO;
 import com.icecandylovers.entities.Produto;
 import com.icecandylovers.entities.Venda;
 import com.icecandylovers.entities.VendaItem;
+import com.icecandylovers.exceptions.ResourceNotFoundException;
 import com.icecandylovers.repositories.VendaRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,46 +26,75 @@ public class VendaService {
         this.produtoService = produtoService;
     }
 
+    /**
+     * Busca um produto pelo ID e lança uma exceção se não for encontrado.
+     *
+     * @param produtoId ID do produto a ser buscado.
+     * @return O produto encontrado.
+     * @throws ResourceNotFoundException Se o produto não for encontrado.
+     */
+    public Produto buscarProdutoPorId(Long produtoId) {
+        return produtoService.buscarProdutoPorId(produtoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + produtoId));
+    }
+
+    /**
+     * Obtém as 10 vendas mais recentes.
+     *
+     * @return Lista das 10 vendas mais recentes.
+     */
     public List<Venda> obterVendasRecentes() {
         return vendaRepository.findTop10ByOrderByDataVendaDesc();
     }
 
+    /**
+     * Calcula o total de vendas realizadas hoje.
+     *
+     * @return O total de vendas de hoje.
+     */
     public BigDecimal calcularVendasHoje() {
         return vendaRepository.findTotalVendasHoje() != null ?
                 vendaRepository.findTotalVendasHoje() : BigDecimal.ZERO;
     }
 
+    /**
+     * Obtém as 5 vendas mais recentes.
+     *
+     * @return Lista das 5 vendas mais recentes.
+     */
     public List<Venda> listarVendasRecentes() {
         return vendaRepository.findTop5ByOrderByDataVendaDesc();
     }
 
-    public VendaRepository getVendaRepository() {
-        return vendaRepository;
-    }
-
-    public ProdutoService getProdutoService() {
-        return produtoService;
-    }
-
+    /**
+     * Registra uma nova venda no sistema.
+     *
+     * @param vendaDTO DTO contendo os dados da venda.
+     * @throws ResourceNotFoundException Se o produto não for encontrado.
+     */
+    @Transactional
     public void registrarVenda(VendaDTO vendaDTO) {
-        Produto produto = produtoService.buscarPorId(vendaDTO.getProdutoId());
-        produtoService.decrementarEstoque(vendaDTO.getProdutoId(), vendaDTO.getQuantidade());
+        // Busca o produto pelo ID
+        Produto produto = buscarProdutoPorId(vendaDTO.produtoId());
+
+        // Decrementa o estoque do produto
+        produtoService.decrementarEstoque(vendaDTO.produtoId(), vendaDTO.quantidade());
+
+        // Cria a venda
         Venda venda = new Venda();
         venda.setDataVenda(LocalDateTime.now());
 
+        // Cria o item da venda
         VendaItem item = new VendaItem();
         item.setProduto(produto);
-        item.setQuantidade(vendaDTO.getQuantidade());
+        item.setQuantidade(vendaDTO.quantidade());
         item.setPrecoUnitario(produto.getPrecoVenda());
 
-        venda.setTotal(produto.getPrecoVenda().multiply(
-                BigDecimal.valueOf(vendaDTO.getQuantidade())
-        ));
+        // Calcula o total da venda
+        BigDecimal total = produto.getPrecoVenda().multiply(BigDecimal.valueOf(vendaDTO.quantidade()));
+        venda.setTotal(total);
 
-        venda.setTotal(produto.getPrecoVenda().multiply(
-                BigDecimal.valueOf(vendaDTO.getQuantidade())
-        ));
+        // Salva a venda no banco de dados
         vendaRepository.save(venda);
     }
-
 }

@@ -15,10 +15,8 @@ public class Ingrediente {
 
     @Column(precision = 10, scale = 2)
     private BigDecimal custoPorUnidade;
-
     @Column(precision = 10, scale = 2)
     private BigDecimal estoqueAtual;
-
     @Column(precision = 10, scale = 2)
     private BigDecimal estoqueInicial;
 

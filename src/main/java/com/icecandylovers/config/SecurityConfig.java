@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -21,10 +22,11 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/img/**",
                                 "/webjars/**",
-                                "/error"
+                                "/error",
+                                "/h2-console/**" // Permite acesso ao console do H2
                         ).permitAll()
                         .requestMatchers(
-                                "/geladinhos/editar/**"
+                                "/geladinhos/editar/**" // Permite acesso à rota de edição
                         ).hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -41,6 +43,12 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(exception -> exception
                         .accessDeniedPage("/access-denied")
+                )
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(new AntPathRequestMatcher("/h2-console/**"))
+                )
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions.disable())
                 );
 
         return http.build();
