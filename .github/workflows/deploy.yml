@@ -70,6 +70,13 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
+      - name: Save Private Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "$(terraform output -raw private_key)" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+        working-directory: ./terraform
+
       # Passo 11: Obter IP da instância EC2
       - name: Get EC2 Instance IP
         id: get-ip
