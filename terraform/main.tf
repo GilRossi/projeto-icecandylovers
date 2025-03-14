@@ -1,3 +1,19 @@
+provider "aws" {
+  region = var.aws_region
+}
+
+# Gerar uma chave SSH dinamicamente
+resource "tls_private_key" "example" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+# Criar o par de chaves na AWS
+resource "aws_key_pair" "my_key_pair" {
+  key_name   = "my-key-name"
+  public_key = tls_private_key.example.public_key_openssh
+}
+
 # Cria uma nova VPC
 resource "aws_vpc" "my_vpc" {
   cidr_block = "10.0.0.0/16"
@@ -64,20 +80,6 @@ resource "aws_instance" "java_app" {
     Environment = "development"
   }
 }
-resource "tls_private_key" "example" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-# Cria um novo Key Pair usando a chave pública armazenada no Git
-resource "aws_key_pair" "example" {
-  key_name   = "example-key"
-  public_key = tls_private_key.example.public_key_openssh
-}
-resource "aws_instance" "example" {
-  ami           = "ami-02b949abf77a18704"  # Substitua pela AMI desejada
-  instance_type = "t2.micro"
-  key_name      = aws_key_pair.example.key_name  # Associa o par de chaves
-}
 
 # Busca a AMI mais recente do Ubuntu
 data "aws_ami" "ubuntu" {
@@ -85,11 +87,6 @@ data "aws_ami" "ubuntu" {
   owners      = ["099720109477"]  # ID do proprietário para imagens oficiais do Ubuntu
   filter {
     name   = "name"
-    values = ["ubuntu-*-amd64-server-*"]
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
   }
-}
-resource "local_file" "private_key" {
-  content  = tls_private_key.example.private_key_pem
-  filename = "${path.module}/private_key.pem"
-  file_permission = "0600"  # Permissões restritas para o arquivo
 }
