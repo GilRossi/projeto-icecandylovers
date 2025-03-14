@@ -13,12 +13,6 @@ resource "tls_private_key" "example" {
   rsa_bits  = 4096
 }
 
-# Criar o par de chaves na AWS
-resource "aws_key_pair" "my_key_pair" {
-  key_name   = "TERRAFORM"
-  public_key = tls_private_key.example.public_key_openssh
-}
-
 # Cria uma nova VPC
 resource "aws_vpc" "my_vpc" {
   cidr_block = "10.0.0.0/16"
@@ -106,7 +100,7 @@ resource "aws_security_group" "java_sg" {
 resource "aws_instance" "java_app" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.micro"
-  key_name               = "TERRAFORM"  # Use o nome do par de chaves existente
+  key_name               = "TERRAFORM"
   subnet_id              = aws_subnet.my_subnet.id
   vpc_security_group_ids = [aws_security_group.java_sg.id]
 
