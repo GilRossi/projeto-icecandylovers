@@ -44,8 +44,8 @@ public class IngredienteController {
             response.put("id", savedIngrediente.getId());
             response.put("nome", savedIngrediente.getNome());
             response.put("custoPorUnidade", savedIngrediente.getCustoPorUnidade());
+            response.put("estoqueInicial", savedIngrediente.getEstoqueInicial());
             response.put("unidadeMedida", savedIngrediente.getUnidadeMedida());
-            response.put("estoqueAtual", savedIngrediente.getEstoqueAtual());
             response.put("closeModal", true);
 
             return ResponseEntity.ok(response);
@@ -54,5 +54,4 @@ public class IngredienteController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
-
 }

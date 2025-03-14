@@ -60,9 +60,10 @@ function removeIngrediente(element) {
 function atualizarIngredientesDropdown() {
     const selects = document.querySelectorAll('select[name^="ingredientes"]');
     selects.forEach(select => {
+        const selectedValue = select.value; // Mantém a opção já escolhida
         select.innerHTML = '<option value="">Selecione um ingrediente</option>' +
             window.allIngredientes.map(ing =>
-                `<option value="${ing.id}">${ing.nome}</option>`
+                `<option value="${ing.id}" ${ing.id == selectedValue ? 'selected' : ''}>${ing.nome}</option>`
             ).join('');
     });
 }
@@ -91,12 +92,20 @@ function salvarNovoIngrediente() {
         } else {
             window.allIngredientes.push(data);
             atualizarIngredientesDropdown();
+            limparCamposNovoIngrediente();
             if (data.closeModal) {
                 fecharModal('#novoIngredienteModal');
             }
         }
     })
     .catch(error => console.error('Erro ao salvar ingrediente:', error));
+}
+
+function limparCamposNovoIngrediente() {
+    document.getElementById('novoIngredienteNome').value = '';
+    document.getElementById('novoIngredienteCusto').value = '';
+    document.getElementById('novoIngredienteUnidade').value = 'quilos'; // padrão para quilos
+    document.getElementById('novoIngredienteEstoque').value = '';
 }
 
 function fecharModal(modalId) {
@@ -112,12 +121,32 @@ function calcularPrecoCusto() {
 
     document.querySelectorAll('#ingredientes-container .ingrediente-item').forEach(item => {
         const select = item.querySelector('select');
-        const quantidade = parseInt(item.querySelector('input[type="number"]').value) || 0;
+        const quantidade = parseFloat(item.querySelector('input[type="number"]').value) || 0;
         const ingrediente = window.allIngredientes.find(ing => ing.id == select.value);
 
-        if (ingrediente && ingrediente.custoPorUnidade && ingrediente.estoqueInicial) {
-            const estoqueInicial = parseInt(ingrediente.estoqueInicial) || 1; // Garante que não haja divisão por zero
-            const custoUnitario = parseFloat(ingrediente.custoPorUnidade) / estoqueInicial;
+        if (ingrediente && ingrediente.custoPorUnidade && ingrediente.estoqueInicial && ingrediente.unidadeMedida) {
+            const estoqueInicial = parseFloat(ingrediente.estoqueInicial) || 1; // Evita divisão por zero
+            let custoUnitario = 0;
+
+            switch (ingrediente.unidadeMedida.toLowerCase()) {
+                case 'unidades':
+                    if (!Number.isInteger(quantidade)) {
+                        alert('A quantidade de unidades deve ser um número inteiro.');
+                        return;
+                    }
+                    custoUnitario = parseFloat(ingrediente.custoPorUnidade) / estoqueInicial;
+                    break;
+                case 'litros':
+                    custoUnitario = parseFloat(ingrediente.custoPorUnidade) / estoqueInicial;
+                    break;
+                case 'quilos':
+                    custoUnitario = parseFloat(ingrediente.custoPorUnidade) / estoqueInicial;
+                    break;
+                default:
+                    console.warn(`Unidade de medida desconhecida: ${ingrediente.unidadeMedida}`);
+                    return;
+            }
+
             totalCusto += custoUnitario * quantidade;
         }
     });
