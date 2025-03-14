@@ -1,94 +1,123 @@
-name: Deploy Java 21 App
+  provider "aws" {
+    region = var.aws_region
+  }
+    
+    # Data source para encontrar uma VPC existente (se houver)
+    data "aws_vpc" "existing_vpc" {
+    filter {
+    name   = "tag:Name"
+    values = ["my-vpc"]
+    }
+  }
+    
+    # Cria uma VPC apenas se a VPC existente não for encontrada
+    resource "aws_vpc" "my_vpc" {
+  count      = length(data.aws_vpc.existing_vpc.id) == 0 ? 1 : 0  # Cria nova VPC se não encontrar uma existente
+    cidr_block = "10.0.0.0/16"  # Define o bloco CIDR da VPC
+    
+    tags = {
+    Name = "my-vpc"
+  }
+  }
 
-on:
-  push:
-    branches:
-      - main
+    # Usar a VPC existente ou a criada
+    locals {
+  vpc_id = length(data.aws_vpc.existing_vpc.id) > 0 ? data.aws_vpc.existing_vpc.id : aws_vpc.my_vpc[0].id
+  }
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+    # Data para buscar a AMI do Ubuntu
+    data "aws_ami" "ubuntu" {
+    most_recent = true
+    owners      = ["099720109477"]  # ID do proprietário para imagens oficiais do Ubuntu
+    filters = {
+    name = "ubuntu-*-amd64-server-*"
+  }
+  }
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    # Buscar sub-rede existente (opcional)
+    data "aws_subnet" "existing_subnet" {
+    filter {
+    name   = "tag:Name"
+    values = ["my-subnet"]
+  }
+  }
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v2
-        with:
-          java-version: '21'
-          distribution: 'temurin'
+    # Criar sub-rede apenas se não existir
+    resource "aws_subnet" "my_subnet" {
+  count             = length(data.aws_subnet.existing_subnet.id) == 0 ? 1 : 0
+    vpc_id            = local.vpc_id
+    cidr_block        = "10.0.1.0/24"
+    availability_zone = "us-east-1a"
+    
+    tags = {
+    Name        = "my-subnet"
+    Environment = "development"
+  }
+  }
 
-      - name: Configure AWS Region
-        run: aws configure set region us-east-1
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    # Security Group (atualiza se já existir)
+    resource "aws_security_group" "java_sg" {
+    name_prefix = "java-sg"
+    vpc_id      = local.vpc_id
+    
+    ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-      - name: Build with Maven
-        run: mvn clean package
+    ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
+    egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-      - name: Terraform Init
-        run: terraform init
-        working-directory: ./terraform
+    tags = {
+    Name        = "java-sg"
+    Environment = "development"
+  }
+  }
 
-      - name: Terraform Validate
-        run: terraform validate
-        working-directory: ./terraform
+    # Buscar instância EC2 existente
+    data "aws_instance" "existing_instance" {
+    filter {
+    name   = "tag:Name"
+    values = ["Java21App"]
+  }
+  }
 
-      - name: Terraform Plan
-        run: terraform plan
-        working-directory: ./terraform
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    # Criar instância apenas se não existir
+    resource "aws_instance" "java_app" {
+  count                  = length(data.aws_instance.existing_instance.id) == 0 ? 1 : 0
+    ami                    = data.aws_ami.ubuntu.id
+    instance_type          = "t2.micro"
+    key_name               = aws_key_pair.my_key_pair[count.index].key_name
+    subnet_id              = aws_subnet.my_subnet[count.index].id
+    vpc_security_group_ids = [aws_security_group.java_sg.id]
+    
+    tags = {
+    Name        = "Java21App"
+    Environment = "development"
+  }
+  }
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
-        working-directory: ./terraform
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    # Verifica se a chave SSH já existe
+    data "aws_key_pair" "my_key_pair" {
+    key_name = "my-key-name"
+  }
 
-      - name: Get EC2 Instance IP
-        id: get-ip
-        run: |
-          INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=java_app" \
-            --query "Reservations[*].Instances[*].InstanceId" \
-            --output text)
-          INSTANCE_IP=$(aws ec2 describe-instances \
-            --instance-ids $INSTANCE_ID \
-            --query "Reservations[*].Instances[*].PublicIpAddress" \
-            --output text)
-          echo "instance_ip=$INSTANCE_IP" >> $GITHUB_ENV
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Add SSH Key
-        run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
-      - name: Install Java 21 on EC2
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ env.instance_ip }} << 'EOF'
-          sudo apt update
-          sudo apt install -y openjdk-21-jdk
-          EOF
-
-      - name: Copy JAR to EC2
-        run: |
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa target/my-java-app.jar ubuntu@${{ env.instance_ip }}:/home/ubuntu/
-
-      - name: Deploy Application
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ env.instance_ip }} << 'EOF'
-          sudo systemctl stop my-java-app || true
-          sudo mv /home/ubuntu/my-java-app.jar /opt/my-java-app/
-          sudo systemctl start my-java-app
-          EOF
+    # Cria a chave SSH se não existir
+    resource "aws_key_pair" "my_key_pair" {
+  count    = length(data.aws_key_pair.my_key_pair.id) == 0 ? 1 : 0
+    key_name = "my-key-name"
+    public_key = file("/home/gil/.ssh/id_rsa.pub")
+  }
