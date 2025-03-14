@@ -2,19 +2,7 @@ provider "aws" {
   region = var.aws_region
 }
 
-# Gerar uma chave SSH dinamicamente
-resource "tls_private_key" "example" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-# Criar o par de chaves na AWS
-resource "aws_key_pair" "my_key_pair" {
-  key_name   = "my-key-name"
-  public_key = tls_private_key.example.public_key_openssh
-}
-
-# Cria uma nova VPC
+# Criar uma VPC
 resource "aws_vpc" "my_vpc" {
   cidr_block = "10.0.0.0/16"
 
@@ -23,11 +11,12 @@ resource "aws_vpc" "my_vpc" {
   }
 }
 
-# Cria uma nova Subnet
+# Criar uma Subnet pública
 resource "aws_subnet" "my_subnet" {
   vpc_id            = aws_vpc.my_vpc.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-east-1a"
+  map_public_ip_on_launch = true  # Atribui um IP público automaticamente
 
   tags = {
     Name        = "my-subnet"
@@ -35,7 +24,36 @@ resource "aws_subnet" "my_subnet" {
   }
 }
 
-# Cria um Security Group para a instância
+# Criar um Internet Gateway
+resource "aws_internet_gateway" "my_igw" {
+  vpc_id = aws_vpc.my_vpc.id
+
+  tags = {
+    Name = "my-igw"
+  }
+}
+
+# Criar uma Tabela de Rotas pública
+resource "aws_route_table" "public_route_table" {
+  vpc_id = aws_vpc.my_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.my_igw.id
+  }
+
+  tags = {
+    Name = "public-route-table"
+  }
+}
+
+# Associar a Subnet pública à Tabela de Rotas
+resource "aws_route_table_association" "public_subnet_association" {
+  subnet_id      = aws_subnet.my_subnet.id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
+# Criar um Security Group
 resource "aws_security_group" "java_sg" {
   name_prefix = "java-sg"
   vpc_id      = aws_vpc.my_vpc.id
@@ -67,7 +85,7 @@ resource "aws_security_group" "java_sg" {
   }
 }
 
-# Cria uma nova instância EC2
+# Criar uma instância EC2
 resource "aws_instance" "java_app" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.micro"
@@ -81,7 +99,7 @@ resource "aws_instance" "java_app" {
   }
 }
 
-# Busca a AMI mais recente do Ubuntu
+# Buscar a AMI mais recente do Ubuntu
 data "aws_ami" "ubuntu" {
   most_recent = true
   owners      = ["099720109477"]  # ID do proprietário para imagens oficiais do Ubuntu
