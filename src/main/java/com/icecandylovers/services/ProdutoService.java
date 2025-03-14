@@ -75,7 +75,8 @@ public class ProdutoService {
                 produto.getSabor(),
                 produto.getEstoqueInicial(),
                 produto.getEstoqueAtual(),
-                produto.getPrecoCusto(),
+                produto.getPrecoCusto() != null ? produto.getPrecoCusto() : 0.0,
+                //produto.getPrecoCustoUnitario() != null ? produto.getPrecoCustoUnitario() : 0.0,
                 ingredientesDTO,
                 produto.getFonteAgua(),
                 produto.getQuantidadeGaloes(),
@@ -85,11 +86,12 @@ public class ProdutoService {
                 produto.getTaxaAgua(),
                 produto.getTaxaGas(),
                 produto.getTaxaEnergia(),
-                produto.getUsoQuadrichama(),
-                produto.getUsoRapido(),
-                produto.getUsoSemirapido()
+                produto.getUsoQuadrichama() != null ? produto.getUsoQuadrichama() : false,
+                produto.getUsoRapido() != null ? produto.getUsoRapido() : false,
+                produto.getUsoSemirapido() != null ? produto.getUsoSemirapido() : false
         );
     }
+
 
     private ProdutoIngredienteDTO converterIngredienteParaDTO(ProdutoIngrediente produtoIngrediente) {
         return new ProdutoIngredienteDTO(
@@ -104,6 +106,8 @@ public class ProdutoService {
         produto.setEstoqueInicial(produtoDTO.estoqueInicial());
         produto.setEstoqueAtual(produtoDTO.estoqueAtual());
         produto.setPrecoCusto(produtoDTO.precoCusto());
+        //produto.setPrecoCustoUnitario(produtoDTO.precoCustoUnitario());
+
         produto.setFonteAgua(produtoDTO.fonteAgua());
         produto.setQuantidadeGaloes(produtoDTO.quantidadeGaloes());
         produto.setMetrosCubicosAgua(produtoDTO.metrosCubicosAgua());
@@ -116,11 +120,11 @@ public class ProdutoService {
         produto.setUsoRapido(produtoDTO.usoRapido());
         produto.setUsoSemirapido(produtoDTO.usoSemirapido());
 
-        // Preço de venda será definido apenas na venda
-        produto.setPrecoVenda(null);
+        produto.setPrecoVenda(null); // Mantém o preço de venda indefinido até a venda acontecer
 
         return produto;
     }
+
 
 
     private void salvarIngredientesDoProduto(Produto produto, List<ProdutoIngredienteDTO> ingredientesDTO) {

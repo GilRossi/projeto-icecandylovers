@@ -8,6 +8,7 @@ public record ProdutoDTO(
         Integer estoqueInicial, // Alterado de int para Integer
         Integer estoqueAtual,    // Alterado de int para Integer
         double precoCusto,
+        //double precoCustoUnitario,
         List<ProdutoIngredienteDTO> ingredientes,
         String fonteAgua,
         Double quantidadeGaloes,

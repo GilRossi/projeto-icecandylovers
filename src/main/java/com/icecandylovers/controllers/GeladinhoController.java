@@ -89,7 +89,6 @@ public class GeladinhoController {
 
     @PostMapping("/salvar")
     public String salvarGeladinho(@ModelAttribute ProdutoDTO produtoDTO, Model model) {
-        System.out.println("ProdutoDTO recebido: " + produtoDTO);
 
         // Filtrando ingredientes sem ID
         produtoDTO = new ProdutoDTO(
@@ -98,6 +97,7 @@ public class GeladinhoController {
                 produtoDTO.estoqueInicial(),
                 produtoDTO.estoqueAtual(),
                 produtoDTO.precoCusto(),
+                //produtoDTO.precoCustoUnitario(),
                 produtoDTO.ingredientes().stream()
                         .filter(ing -> ing.ingredienteId() != null)
                         .toList(),
@@ -132,6 +132,7 @@ public class GeladinhoController {
                 0, // estoqueInicial
                 0, // estoqueAtual
                 0.0, // precoCusto
+                //0.0, //precoCustoUnitario
                 new ArrayList<>(), // ingredientes
                 "", // fonteAgua
                 0.0, // quantidadeGaloes
@@ -167,6 +168,7 @@ public class GeladinhoController {
                 produto.getEstoqueInicial(),
                 produto.getEstoqueAtual(),
                 produto.getPrecoCusto(),
+                //produto.getPrecoCustoUnitario(),
                 ingredientesDTO,
                 produto.getFonteAgua(),
                 produto.getQuantidadeGaloes(),
@@ -193,7 +195,7 @@ public class GeladinhoController {
         produto.setSabor(produtoDTO.sabor());
         produto.setEstoqueInicial(produtoDTO.estoqueInicial());
         produto.setEstoqueAtual(produtoDTO.estoqueAtual());
-        produto.setPrecoCusto(produtoDTO.precoCusto());
+        //produto.setPrecoCusto(produtoDTO.precoCusto());
         produto.setFonteAgua(produtoDTO.fonteAgua());
         produto.setQuantidadeGaloes(produtoDTO.quantidadeGaloes());
         produto.setMetrosCubicosAgua(produtoDTO.metrosCubicosAgua());

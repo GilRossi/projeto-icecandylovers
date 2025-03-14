@@ -24,6 +24,9 @@ public class Produto {
     @Column(name = "preco_custo", nullable = false)
     private Double precoCusto;
 
+    @Column(name = "preco_custo_unitario", nullable = false)
+    private Double precoCustoUnitario;
+
     @OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProdutoIngrediente> ingredientes = new ArrayList<>();
 
@@ -86,6 +89,14 @@ public class Produto {
     private Double custoEnergia;
 
     // Getters e Setters
+
+    public Double getPrecoCustoUnitario() {
+        return precoCustoUnitario;
+    }
+
+    public void setPrecoCustoUnitario(Double precoCustoUnitario) {
+        this.precoCustoUnitario = precoCustoUnitario;
+    }
 
     public Long getId() {
         return id;
