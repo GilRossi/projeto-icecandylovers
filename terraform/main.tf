@@ -1,5 +1,10 @@
 provider "aws" {
   region = var.aws_region
+  skip_credentials_validation = true
+  skip_requesting_account_id  = true
+  skip_metadata_api_check     = true
+  skip_region_validation      = true
+  skip_get_ec2_platforms      = true
 }
 
 # Gerar uma chave SSH dinamicamente
@@ -101,7 +106,7 @@ resource "aws_security_group" "java_sg" {
 resource "aws_instance" "java_app" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.micro"
-  key_name               = aws_key_pair.my_key_pair.key_name
+  key_name               = "TERRAFORM"  # Use o nome do par de chaves existente
   subnet_id              = aws_subnet.my_subnet.id
   vpc_security_group_ids = [aws_security_group.java_sg.id]
 
