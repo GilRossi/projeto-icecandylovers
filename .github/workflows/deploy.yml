@@ -37,8 +37,8 @@ jobs:
         run: terraform plan
         working-directory: ./terraform
         env:
-            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
@@ -46,27 +46,6 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Install Java 21 on EC2
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} ubuntu@${{ steps.get-ip.outputs.instance_ip }} << 'EOF'
-          sudo apt update
-          sudo apt install -y openjdk-21-jdk
-          EOF
-
-      - name: Copy JAR to EC2
-        run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa target/my-java-app.jar ubuntu@${{ steps.get-ip.outputs.instance_ip }}:/home/ubuntu/
-
-      - name: Deploy Application
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} ubuntu@${{ steps.get-ip.outputs.instance_ip }} << 'EOF'
-          sudo systemctl stop my-java-app || true
-          sudo mv /home/ubuntu/my-java-app.jar /opt/my-java-app/
-          sudo systemctl start my-java-app
-          EOF
 
       - name: Get EC2 Instance IP
         id: get-ip
@@ -79,7 +58,31 @@ jobs:
             --instance-ids $INSTANCE_ID \
             --query "Reservations[*].Instances[*].PublicIpAddress" \
             --output text)
-          echo "instance_ip=$INSTANCE_IP" >> $GITHUB_OUTPUT
+          echo "instance_ip=$INSTANCE_IP" >> $GITHUB_ENV
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Add SSH Key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Install Java 21 on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@$instance_ip << 'EOF'
+          sudo apt update
+          sudo apt install -y openjdk-21-jdk
+          EOF
+
+      - name: Copy JAR to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa target/my-java-app.jar ubuntu@$instance_ip:/home/ubuntu/
+
+      - name: Deploy Application
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@$instance_ip << 'EOF'
+          sudo systemctl stop my-java-app || true
+          sudo mv /home/ubuntu/my-java-app.jar /opt/my-java-app/
+          sudo systemctl start my-java-app
+          EOF
