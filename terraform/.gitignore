@@ -1,4 +1,2 @@
-terraform.tfstate
-.terraform.lock.hcl
-.terraform/
-fresh-clone/
+.idea
+.terraform
