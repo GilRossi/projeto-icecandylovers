@@ -3,7 +3,6 @@ variable "ssh_private_key" {
   description = "Chave privada SSH para autenticação."
   sensitive   = true
 }
-
 variable "ssh_public_key" {
   type        = string
   description = "Chave pública SSH para acessar a instância."
