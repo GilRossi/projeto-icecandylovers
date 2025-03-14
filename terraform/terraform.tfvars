@@ -1,0 +1,1 @@
+ssh_public_key = "sua-chave-publica-ssh-aqui"

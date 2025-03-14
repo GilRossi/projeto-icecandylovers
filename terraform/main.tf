@@ -100,3 +100,8 @@ variable "aws_region" {
   type        = string
   default     = "us-east-1"
 }
+variable "ssh_private_key" {
+  type        = string
+  description = "Chave privada SSH para autenticação."
+  sensitive   = true
+}
