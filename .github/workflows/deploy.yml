@@ -53,7 +53,9 @@ jobs:
 
       - name: Copy JAR to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} target/my-java-app.jar ubuntu@${{ steps.get-ip.outputs.instance_ip }}:/home/ubuntu/
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa target/my-java-app.jar ubuntu@${{ steps.get-ip.outputs.instance_ip }}:/home/ubuntu/
 
       - name: Deploy Application
         run: |
