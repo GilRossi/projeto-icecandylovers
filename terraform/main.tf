@@ -85,23 +85,41 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-# Variáveis
-variable "ssh_public_key" {
-  type        = string
-  description = "Chave pública SSH para acessar a instância."
-  validation {
-    condition     = length(var.ssh_public_key) > 0
-    error_message = "A chave pública SSH não pode estar vazia."
+terraform {
+  required_providers {
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
   }
 }
 
-variable "aws_region" {
-  description = "A região da AWS"
-  type        = string
-  default     = "us-east-1"
+provider "tls" {}
+
+resource "tls_private_key" "example" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
 }
-variable "ssh_private_key" {
-  type        = string
-  description = "Chave privada SSH para autenticação."
-  sensitive   = true
+resource "aws_key_pair" "example" {
+  key_name   = "example-key"
+  public_key = tls_private_key.example.public_key_openssh
+}
+resource "tls_private_key" "example" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "aws_key_pair" "example" {
+  key_name   = "example-key"
+  public_key = tls_private_key.example.public_key_openssh
+}
+resource "aws_instance" "example" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t2.micro"
+  key_name      = aws_key_pair.example.key_name
+}
+
+resource "aws_key_pair" "example" {
+  key_name   = "example-key"
+  public_key = tls_private_key.example.public_key_openssh
 }
