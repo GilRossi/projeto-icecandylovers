@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.aws_region
-}
-
 # Cria uma nova VPC
 resource "aws_vpc" "my_vpc" {
   cidr_block = "10.0.0.0/16"
@@ -68,11 +64,14 @@ resource "aws_instance" "java_app" {
     Environment = "development"
   }
 }
-
+resource "tls_private_key" "example" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
 # Cria um novo Key Pair usando a chave pública armazenada no Git
 resource "aws_key_pair" "my_key_pair" {
   key_name   = "my-key-name"
-  public_key = file("${path.module}/id_rsa.pub")  # Caminho para a chave pública no repositório
+  public_key = tls_private_key.example.public_key_openssh
 }
 
 # Busca a AMI mais recente do Ubuntu
@@ -83,43 +82,4 @@ data "aws_ami" "ubuntu" {
     name   = "name"
     values = ["ubuntu-*-amd64-server-*"]
   }
-}
-
-terraform {
-  required_providers {
-    tls = {
-      source  = "hashicorp/tls"
-      version = "~> 4.0"
-    }
-  }
-}
-
-provider "tls" {}
-
-resource "tls_private_key" "example" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-resource "aws_key_pair" "example" {
-  key_name   = "example-key"
-  public_key = tls_private_key.example.public_key_openssh
-}
-resource "tls_private_key" "example" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-resource "aws_key_pair" "example" {
-  key_name   = "example-key"
-  public_key = tls_private_key.example.public_key_openssh
-}
-resource "aws_instance" "example" {
-  ami           = "ami-0c55b159cbfafe1f0"
-  instance_type = "t2.micro"
-  key_name      = aws_key_pair.example.key_name
-}
-
-resource "aws_key_pair" "example" {
-  key_name   = "example-key"
-  public_key = tls_private_key.example.public_key_openssh
 }

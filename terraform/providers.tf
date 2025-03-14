@@ -1,9 +1,18 @@
-resource "tls_private_key" "example" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
+  }
 }
 
-resource "aws_key_pair" "example" {
-  key_name   = "example-key"
-  public_key = tls_private_key.example.public_key_openssh
+provider "aws" {
+  region = var.aws_region
 }
+
+provider "tls" {}
