@@ -40,14 +40,14 @@ jobs:
         working-directory: ./terraform
 
       - name: Terraform Plan
-        run: terraform plan -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
+        run: terraform plan
         working-directory: ./terraform
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
+        run: terraform apply -auto-approve
         working-directory: ./terraform
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -76,41 +76,4 @@ jobs:
 
       - name: Install Java 21 on EC2
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ env.instance_ip }} << 'EOF'
-          sudo apt update
-          sudo apt install -y openjdk-21-jdk
-          EOF
-
-      - name: Copy JAR to EC2
-        run: |
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa target/my-java-app.jar ubuntu@${{ env.instance_ip }}:/home/ubuntu/
-
-      - name: Deploy Application
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ env.instance_ip }} << 'EOF'
-          sudo systemctl stop my-java-app || true
-          sudo mv /home/ubuntu/my-java-app.jar /opt/my-java-app/
-          sudo systemctl start my-java-app
-          EOF
-
-      - name: Set up systemd service for Java app
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ env.instance_ip }} << 'EOF'
-          sudo bash -c 'echo "[Unit]
-  Description=My Java Application
-  After=network.target
-
-  [Service]
-  User=ubuntu
-  Environment=\"SPRING_PROFILES_ACTIVE=prod\"
-  ExecStart=/usr/bin/java -jar /opt/my-java-app/my-java-app.jar
-  Restart=always
-  WorkingDirectory=/opt/my-java-app
-
-  [Install]
-  WantedBy=multi-user.target" > /etc/systemd/system/my-java-app.service'
-  
-  sudo systemctl daemon-reload
-  sudo systemctl enable my-java-app
-  sudo systemctl start my-java-app
-  EOF
+         
