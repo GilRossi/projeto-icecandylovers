@@ -92,3 +92,24 @@ jobs:
           sudo mv /home/ubuntu/my-java-app.jar /opt/my-java-app/
           sudo systemctl start my-java-app
           EOF
+          
+          - name: Set up systemd service for Java app
+  run: |
+    ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ env.instance_ip }} << 'EOF'
+    sudo bash -c 'echo "[Unit]
+  Description=My Java Application
+  After=network.target
+
+  [Service]
+  User=ubuntu
+  ExecStart=/usr/bin/java -jar /opt/my-java-app/my-java-app.jar
+  Restart=always
+  
+  [Install]
+  WantedBy=multi-user.target" > /etc/systemd/system/my-java-app.service'
+  
+  sudo systemctl daemon-reload
+  sudo systemctl enable my-java-app
+  sudo systemctl start my-java-app
+  EOF
+
