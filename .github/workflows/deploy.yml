@@ -128,3 +128,18 @@ jobs:
             echo "Application health check failed"
             exit 1
           fi
+
+      - name: Connect to EC2 Instance
+        run: |
+          INSTANCE_IP=$(aws ec2 describe-instances \
+            --instance-ids $INSTANCE_ID \
+            --query "Reservations[*].Instances[*].PublicIpAddress" \
+            --output text)
+          echo "Conectando à instância em $INSTANCE_IP..."
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@$INSTANCE_IP << 'EOF'
+          echo "Conexão SSH bem-sucedida!"
+          EOF
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          INSTANCE_ID: ${{ env.INSTANCE_ID }}
