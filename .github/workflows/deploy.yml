@@ -76,4 +76,19 @@ jobs:
 
       - name: Install Java 21 on EC2
         run: |
-         
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ env.instance_ip }} << 'EOF'
+          sudo apt update
+          sudo apt install -y openjdk-21-jdk
+          EOF
+
+      - name: Copy JAR to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa target/my-java-app.jar ubuntu@${{ env.instance_ip }}:/home/ubuntu/
+
+      - name: Deploy Application
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ env.instance_ip }} << 'EOF'
+          sudo systemctl stop my-java-app || true
+          sudo mv /home/ubuntu/my-java-app.jar /opt/my-java-app/
+          sudo systemctl start my-java-app
+          EOF
