@@ -1,4 +1,4 @@
-name: Deploy Spring Boot App
+name: Deploy Java 21 App
 
 on:
   push:
@@ -13,10 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up JDK
+      - name: Set up JDK 21
         uses: actions/setup-java@v2
         with:
           java-version: '21'
+          distribution: 'temurin'
 
       - name: Build with Maven
         run: mvn clean package
@@ -26,21 +27,38 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+        working-directory: ./terraform
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ./terraform
+
+      - name: Terraform Plan
+        run: terraform plan
+        working-directory: ./terraform
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
+        working-directory: ./terraform
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
+      - name: Install Java 21 on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} ubuntu@${{ steps.get-ip.outputs.instance_ip }} << 'EOF'
+          sudo apt update
+          sudo apt install -y openjdk-21-jdk
+          EOF
+
       - name: Copy JAR to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} target/my-spring-app.jar ubuntu@${{ steps.get-ip.outputs.instance_ip }}:/home/ubuntu/
+          scp -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} target/my-java-app.jar ubuntu@${{ steps.get-ip.outputs.instance_ip }}:/home/ubuntu/
 
       - name: Deploy Application
         run: |
           ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} ubuntu@${{ steps.get-ip.outputs.instance_ip }} << 'EOF'
-          sudo systemctl stop my-spring-app || true
-          sudo mv /home/ubuntu/my-spring-app.jar /opt/my-spring-app/
-          sudo systemctl start my-spring-app
+          sudo systemctl stop my-java-app || true
+          sudo mv /home/ubuntu/my-java-app.jar /opt/my-java-app/
+          sudo systemctl start my-java-app
           EOF
