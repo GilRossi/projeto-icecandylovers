@@ -126,7 +126,7 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-# Output para exibir o IP público da instância
+# Output para exibir o IP público da instânciaa
 output "public_ip" {
   value = aws_instance.java_app.public_ip
 }
