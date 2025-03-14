@@ -87,8 +87,8 @@ data "aws_ami" "ubuntu" {
 
 # Variáveis
 variable "ssh_public_key" {
-  description = "A chave pública SSH para acessar a instância"
   type        = string
+  description = "Chave pública SSH para acessar a instância."
   validation {
     condition     = length(var.ssh_public_key) > 0
     error_message = "A chave pública SSH não pode estar vazia."
