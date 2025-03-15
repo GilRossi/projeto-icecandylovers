@@ -8,13 +8,12 @@ import com.icecandylovers.services.IngredienteService;
 import com.icecandylovers.services.TaxaService;
 import com.icecandylovers.services.ProdutoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Controller
 @RequestMapping("/geladinhos")
@@ -86,9 +85,15 @@ public class GeladinhoController {
         return "redirect:/dashboard";
     }
 
-
     @PostMapping("/salvar")
-    public String salvarGeladinho(@ModelAttribute ProdutoDTO produtoDTO, Model model) {
+    public ResponseEntity<Map<String, Object>> salvarGeladinho(@ModelAttribute ProdutoDTO produtoDTO) {
+        // Validação de campos obrigatórios
+        if (produtoDTO.sabor() == null || produtoDTO.sabor().isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "O campo 'sabor' é obrigatório.");
+            return ResponseEntity.badRequest().body(response);
+        }
 
         // Filtrando ingredientes sem ID
         produtoDTO = new ProdutoDTO(
@@ -97,7 +102,6 @@ public class GeladinhoController {
                 produtoDTO.estoqueInicial(),
                 produtoDTO.estoqueAtual(),
                 produtoDTO.precoCusto(),
-                //produtoDTO.precoCustoUnitario(),
                 produtoDTO.ingredientes().stream()
                         .filter(ing -> ing.ingredienteId() != null)
                         .toList(),
@@ -114,15 +118,19 @@ public class GeladinhoController {
                 produtoDTO.usoSemirapido()
         );
 
+        Map<String, Object> response = new HashMap<>();
         try {
+            System.out.println("ProdutoDTO recebido: " + produtoDTO); // Log para depuração
             produtoService.salvarProduto(produtoDTO);
-            model.addAttribute("mensagem", "Geladinho salvo com sucesso!");
+            response.put("success", true);
+            response.put("message", "Geladinho salvo com sucesso!");
         } catch (Exception e) {
-            model.addAttribute("erro", "Erro ao salvar o geladinho: " + e.getMessage());
+            System.err.println("Erro ao salvar o geladinho: " + e.getMessage()); // Log de erro
+            response.put("success", false);
+            response.put("error", "Erro ao salvar o geladinho: " + e.getMessage());
         }
-        return "cadastro-geladinho";
+        return ResponseEntity.ok(response);
     }
-
 
     @GetMapping("/novo")
     public String showCadastroForm(Model model) {
@@ -209,7 +217,4 @@ public class GeladinhoController {
         produto.setUsoSemirapido(produtoDTO.usoSemirapido());
         return produto;
     }
-
-
-
 }
