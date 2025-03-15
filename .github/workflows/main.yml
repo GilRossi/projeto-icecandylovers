@@ -1,20 +1,14 @@
-name: "PROD DEPLOY"
+stages:
+  - terraform
 
-on:
-  push:
-    branches:
-      - main
-
-permissions:
-  id-token: write
-  contents: read
-
-jobs:
-  terraform:
-    uses: ./.github/workflows/terraform.yml
-    with:
-      environment: main
-      aws-assume-role-arn: "arn:aws:iam::767397900153:role/github-actions-gilrossi-pipeline"
-      aws-region: "us-east-1"
-      aws-statefile-s3-bucket: "icecandylovers-us-east-1-terraform-statefile"
-      aws-lock-dynamodb-table: "icecandylovers-us-east-1-terraform-lock"
+terraform:
+  stage: terraform
+  image: hashicorp/terraform:latest
+  before_script:
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan github.com >> ~/.ssh/known_hosts
+  script:
+    - terraform init
+    - terraform apply -auto-approve
