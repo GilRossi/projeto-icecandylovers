@@ -1,0 +1,11 @@
+[Unit]
+Description=My Spring Boot Application
+After=network.target
+
+[Service]
+User=ubuntu
+ExecStart=/usr/bin/java -jar /opt/my-app/my-app.jar
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

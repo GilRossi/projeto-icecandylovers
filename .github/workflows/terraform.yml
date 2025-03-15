@@ -1,81 +1,48 @@
-name: "Terraform Workflow"
+name: Deploy to AWS EC2
 
 on:
-  workflow_call:
-    inputs:
-      environment:
-        type: string
-        required: true
-      aws-assume-role-arn:
-        type: string
-        required: true
-      aws-region:
-        type: string
-        required: true
-      aws-statefile-s3-bucket:
-        type: string
-        required: true
-      aws-lock-dynamodb-table:
-        type: string
-        required: true
+  push:
+    branches:
+      - main
 
 jobs:
-  terraform:
+  deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Check out code
+        uses: actions/checkout@v2
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - name: Set up JDK 21
+        uses: actions/setup-java@v2
         with:
-          terraform_version: 1.8.3
+          java-version: '21'
+          distribution: 'adoptopenjdk'
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Cache Maven dependencies
+        uses: actions/cache@v2
         with:
-          role-to-assume: ${{ inputs.aws-assume-role-arn }}
-          role-session-name: GitHub_to_AWS_via_FederatedOIDC
-          aws-region: ${{ inputs.aws-region }}
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-      - name: Read destroy configuration
-        id: read-destroy-config
+      - name: Build with Maven
+        run: mvn clean install -DskipTests
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: projeto-icecandylovers
+          path: target/icecandylovers-0.0.1-SNAPSHOT.jar
+
+      - name: Deploy to EC2
         run: |
-          DESTROY="$(jq -r '.${{ inputs.environment }}' ./terraform/destroy_config.json)"
-          echo "destroy=$(echo $DESTROY)" >> $GITHUB_OUTPUT
-
-      - name: Terraform Init
-        run: |
-          cd terraform && terraform init \
-            -backend-config="bucket=${{ inputs.aws-statefile-s3-bucket }}" \
-            -backend-config="key=${{ github.event.repository.name }}" \
-            -backend-config="region=${{ inputs.aws-region }}" \
-            -backend-config="dynamodb_table=${{ inputs.aws-lock-dynamodb-table }}"
-
-      - name: Terraform Validate
-        run: terraform validate
-
-      - name: Terraform Destroy
-        if: steps.read-destroy-config.outputs.destroy == 'true'
-        id: terraform-destroy
-        run: cd terraform &&
-          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
-          terraform destroy -var-file="./envs/${{ inputs.environment }}/terraform.tfvars" -auto-approve
-
-      - name: Terraform Plan
-        if: steps.read-destroy-config.outputs.destroy != 'true'
-        id: terraform-plan
-        run: cd terraform &&
-          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
-          terraform plan -var-file="./envs/${{ inputs.environment }}/terraform.tfvars" -out="${{ inputs.environment }}.plan"
-
-      - name: Terraform Apply
-        if: steps.read-destroy-config.outputs.destroy != 'true'
-        id: terraform-apply
-        run: cd terraform &&
-          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
-          terraform apply "${{ inputs.environment }}.plan"
+          scp -i ~/.ssh/my-key.pem target/icecandylovers-0.0.1-SNAPSHOT.jar ubuntu@3.227.20.86:/home/ubuntu/
+          ssh -i ~/.ssh/my-key.pem ubuntu@3.227.20.86 << 'EOF'
+          sudo systemctl stop projeto-icecandylovers.service || true
+          sudo mv /home/ubuntu/icecandylovers-0.0.1-SNAPSHOT.jar /opt/projeto-icecandylovers/icecandylovers.jar
+          sudo systemctl start projeto-icecandylovers.service
+          EOF
+        env:
+          PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
