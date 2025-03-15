@@ -153,3 +153,83 @@ function calcularPrecoCusto() {
 
     document.getElementById('precoCusto').value = totalCusto.toFixed(2);
 }
+
+//função do botão para salvar geladinho
+document.addEventListener('DOMContentLoaded', function() {
+    const salvarBtn = document.getElementById('salvarGeladinhoBtn');
+    if (salvarBtn) {
+        salvarBtn.addEventListener('click', salvarGeladinho);
+        console.log('Botão Salvar Geladinho configurado.');
+    } else {
+        console.error('Botão "Salvar Geladinho" não encontrado.');
+    }
+});
+
+// Função para salvar o geladinho via AJAX
+function salvarGeladinho() {
+    const form = document.getElementById('formCadastroGeladinho');
+    const formData = new FormData(form);
+
+    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+    // Envia os dados do formulário via AJAX
+    fetch('/geladinhos/salvar', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            [csrfHeader]: csrfToken
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Geladinho salvo com sucesso!');
+
+            // Atualiza a interface com as novas informações
+            atualizarInformacoesGeladinho(data.geladinho);
+
+            // Opcional: limpa os campos do formulário
+            form.reset();
+        } else {
+            alert('Erro ao salvar o geladinho: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao salvar geladinho:', error);
+        alert('Ocorreu um erro inesperado. Tente novamente mais tarde.');
+    });
+}
+
+// Função para atualizar as informações na interface
+function atualizarInformacoesGeladinho(geladinho) {
+    // Suponha que você tenha um elemento onde está mostrando os detalhes do geladinho
+    // Por exemplo, um card ou uma tabela
+    const detalhesGeladinho = document.getElementById('detalhesGeladinho');
+
+    if (detalhesGeladinho) {
+        // Atualiza as informações exibidas
+        detalhesGeladinho.innerHTML = `
+            <p><strong>Nome:</strong> ${geladinho.nome}</p>
+            <p><strong>Preço de Custo:</strong> R$ ${geladinho.precoCusto.toFixed(2)}</p>
+            <p><strong>Ingredientes:</strong></p>
+            <ul>
+                ${geladinho.ingredientes.map(ingrediente => `<li>${ingrediente.nome} - Quantidade: ${ingrediente.quantidade}</li>`).join('')}
+            </ul>
+        `;
+    } else {
+        console.error('Elemento para detalhes do geladinho não encontrado.');
+    }
+
+    // Se você tiver uma lista de geladinhos, atualize também essa lista
+    const listaGeladinhos = document.getElementById('listaGeladinhos');
+
+    if (listaGeladinhos) {
+        const novoItem = document.createElement('li');
+        novoItem.textContent = `${geladinho.nome} - Preço de Custo: R$ ${geladinho.precoCusto.toFixed(2)}`;
+        listaGeladinhos.appendChild(novoItem);
+    } else {
+        console.error('Lista de geladinhos não encontrada.');
+    }
+}

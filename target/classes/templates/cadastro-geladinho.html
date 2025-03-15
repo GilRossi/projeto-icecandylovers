@@ -65,7 +65,7 @@
                     <h4>🍦 Cadastro de Geladinho</h4>
                 </div>
                 <div class="card-body">
-                    <form method="post" th:action="@{/geladinhos/salvar}" th:object="${produto}">
+                    <form method="post" th:action="@{/geladinhos/salvar}" th:object="${produto}" id="formCadastroGeladinho">
                         <input th:field="*{id}" type="hidden">
 
                         <!-- Seção: Informações Básicas -->
@@ -279,7 +279,7 @@
 
                             <!-- Botão de Submit -->
                             <div class="d-grid gap-2 mt-4">
-                                <button class="btn btn-lg btn-ice" type="submit">
+                                <button class="btn btn-lg btn-ice" type="submit" id="salvarGeladinhoBtn">
                                     <i class="bi bi-save2-fill me-2"></i>
                                     Salvar Geladinho
                                 </button>
