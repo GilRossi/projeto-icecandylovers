@@ -1,5 +1,7 @@
 package com.icecandylovers.dtos;
 
+import com.icecandylovers.entities.Produto;
+
 import java.util.List;
 
 public record ProdutoDTO(
@@ -8,7 +10,7 @@ public record ProdutoDTO(
         Integer estoqueInicial, // Alterado de int para Integer
         Integer estoqueAtual,    // Alterado de int para Integer
         double precoCusto,
-        //double precoCustoUnitario,
+        double precoCustoUnitario,
         List<ProdutoIngredienteDTO> ingredientes,
         String fonteAgua,
         Double quantidadeGaloes,
@@ -32,5 +34,31 @@ public record ProdutoDTO(
         if (estoqueAtual == null) {
             estoqueAtual = 0;
         }
+    }
+    private ProdutoDTO convertToProdutoDTO(Produto produto) {
+        List<ProdutoIngredienteDTO> ingredientesDTO = produto.getIngredientes().stream()
+                .map(pi -> new ProdutoIngredienteDTO(pi.getIngrediente().getId(), pi.getQuantidade().doubleValue()))
+                .toList();
+
+        return new ProdutoDTO(
+                produto.getId(),
+                produto.getSabor(),
+                produto.getEstoqueInicial(),
+                produto.getEstoqueAtual(),
+                produto.getPrecoCusto(),
+                produto.getPrecoCustoUnitario(),
+                ingredientesDTO,
+                produto.getFonteAgua(),
+                produto.getQuantidadeGaloes(),
+                produto.getMetrosCubicosAgua(),
+                produto.getHorasGas(),
+                produto.getKwh(),
+                produto.getTaxaAgua(),
+                produto.getTaxaGas(),
+                produto.getTaxaEnergia(),
+                produto.getUsoQuadrichama(),
+                produto.getUsoRapido(),
+                produto.getUsoSemirapido()
+        );
     }
 }

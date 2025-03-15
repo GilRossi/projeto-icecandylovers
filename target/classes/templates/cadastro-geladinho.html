@@ -93,21 +93,33 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="estoqueAtual" class="form-label">Estoque Atual</label>
-                                        <input id="estoqueAtual" class="form-control" th:field="*{estoqueAtual}"
-                                               type="number" min="0" value="0" required>
-
+                                        <input class="form-control"
+                                               id="estoqueAtual"
+                                               name="estoqueAtual"
+                                               type="number"
+                                               min="0"
+                                               required>
                                     </div>
                                     <div class="mb-3">
                                         <label for="precoCusto" class="form-label">Preço de Custo (R$)</label>
                                         <input class="form-control"
                                                id="precoCusto"
                                                name="precoCusto"
-                                               type="text"
+                                               type="number"
                                                readonly
+                                               required
                                                value="0.00">
                                     </div>
-
-
+                                    <div class="mb-3">
+                                        <label for="precoCustoUnitario" class="form-label">Preço de Custo Unitário (R$)</label>
+                                        <input class="form-control"
+                                               id="precoCustoUnitario"
+                                               name="precoCustoUnitario"
+                                               type="number"
+                                               readonly
+                                               required
+                                               value="0.00">
+                                    </div>
                                 </div>
                             </div>
                         </div>

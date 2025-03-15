@@ -25,7 +25,7 @@ public class Produto {
     private Double precoCusto;
 
     @Column(name = "preco_custo_unitario", nullable = false)
-    private Double precoCustoUnitario;
+    private Double precoCustoUnitario = 0.0;
 
     @OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProdutoIngrediente> ingredientes = new ArrayList<>();

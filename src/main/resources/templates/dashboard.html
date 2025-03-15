@@ -101,14 +101,11 @@
                         </td>
                         <td>
                             <!-- Botão Editar -->
-                            <button class="btn btn-warning btn-sm btn-editar-geladinho"
-                                    data-id="${produto.id}"
-                                    data-sabor="${produto.sabor}"
-                                    data-estoque-inicial="${produto.estoqueInicial}"
-                                    data-estoque-atual="${produto.estoqueAtual}">
+                            <a class="btn btn-warning btn-sm btn-editar-geladinho"
+                               th:href="@{/geladinhos/editar/{id}(id=${produto.id})}">
                                 <i class="bi bi-pencil"></i>
                                 <span class="d-none d-md-inline">Editar</span>
-                            </button>
+                            </a>
 
                             <!-- Botão Deletar -->
                             <form th:action="@{/geladinhos/deletar}" method="post" class="d-inline">
