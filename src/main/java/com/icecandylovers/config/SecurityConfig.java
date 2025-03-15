@@ -23,11 +23,13 @@ public class SecurityConfig {
                                 "/img/**",
                                 "/webjars/**",
                                 "/error",
-                                "/h2-console/**" // Permite acesso ao console do H2
+                                "/images/**",
+                                "/public/**",
+                                "/h2-console/**"
                         ).permitAll()
                         .requestMatchers(
-                                "/geladinhos/editar/**" // Permite acesso à rota de edição
-                        ).hasAnyRole("USER", "ADMIN")
+                                "/geladinhos/editar/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -45,10 +47,10 @@ public class SecurityConfig {
                         .accessDeniedPage("/access-denied")
                 )
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers(new AntPathRequestMatcher("/h2-console/**"))
+                        .ignoringRequestMatchers(new AntPathRequestMatcher("/h2-console/**")) // Desabilita CSRF para H2 Console (apenas para desenvolvimento)
                 )
                 .headers(headers -> headers
-                        .frameOptions(frameOptions -> frameOptions.disable())
+                        .frameOptions(frameOptions -> frameOptions.disable()) // Desabilita frameOptions para H2 Console (apenas para desenvolvimento)
                 );
 
         return http.build();
