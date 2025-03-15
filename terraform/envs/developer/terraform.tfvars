@@ -1,0 +1,1 @@
+bucket_name = "developer-us-east-1-buildrun-icecandylovers-pipeline"
