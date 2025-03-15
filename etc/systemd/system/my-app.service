@@ -1,10 +1,10 @@
 [Unit]
-Description=My Spring Boot Application
+Description=Projeto Ice Candy Lovers
 After=network.target
 
 [Service]
 User=ubuntu
-ExecStart=/usr/bin/java -jar /opt/my-app/my-app.jar
+ExecStart=/usr/bin/java -jar /opt/my-app/icecandylovers.jar
 SuccessExitStatus=143
 
 [Install]
