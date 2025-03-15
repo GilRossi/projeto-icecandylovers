@@ -245,3 +245,34 @@ function atualizarInformacoesGeladinho(geladinho) {
         console.error('Lista de geladinhos não encontrada.');
     }
 }
+
+function calcularPrecoCustoUnitario() {
+    console.log('Função calcularPrecoCustoUnitario chamada.'); // Log para depuração
+
+    const precoCusto = parseFloat(document.getElementById('precoCusto').value) || 0;
+    const estoqueAtual = parseFloat(document.getElementById('estoqueAtual').value) || 0;
+
+    console.log('precoCusto:', precoCusto); // Log para depuração
+    console.log('estoqueAtual:', estoqueAtual); // Log para depuração
+
+    let precoCustoUnitario = 0.0;
+    if (estoqueAtual > 0) {
+        precoCustoUnitario = precoCusto / estoqueAtual;
+    }
+
+    console.log('precoCustoUnitario:', precoCustoUnitario); // Log para depuração
+
+    document.getElementById('precoCustoUnitario').value = precoCustoUnitario.toFixed(2);
+}
+// Adiciona o evento de input para calcular o preço de custo unitário
+document.getElementById('precoCusto').addEventListener('input', calcularPrecoCustoUnitario);
+document.getElementById('estoqueAtual').addEventListener('input', calcularPrecoCustoUnitario);
+
+// Adiciona o evento de alteração para os ingredientes
+document.getElementById('ingredientes-container').addEventListener('input', calcularPrecoCustoUnitario);
+
+// Adiciona o evento de alteração para os custos fixos (água, gás, energia)
+document.getElementById('quantidadeGaloes').addEventListener('input', calcularPrecoCustoUnitario);
+document.getElementById('metrosCubicosAgua').addEventListener('input', calcularPrecoCustoUnitario);
+document.getElementById('horasGas').addEventListener('input', calcularPrecoCustoUnitario);
+document.getElementById('kwh').addEventListener('input', calcularPrecoCustoUnitario);

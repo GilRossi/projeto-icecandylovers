@@ -102,6 +102,7 @@ public class GeladinhoController {
                 produtoDTO.estoqueInicial(),
                 produtoDTO.estoqueAtual(),
                 produtoDTO.precoCusto(),
+                produtoDTO.precoCustoUnitario(),
                 produtoDTO.ingredientes().stream()
                         .filter(ing -> ing.ingredienteId() != null)
                         .toList(),
@@ -140,7 +141,7 @@ public class GeladinhoController {
                 0, // estoqueInicial
                 0, // estoqueAtual
                 0.0, // precoCusto
-                //0.0, //precoCustoUnitario
+                0.0, //precoCustoUnitario
                 new ArrayList<>(), // ingredientes
                 "", // fonteAgua
                 0.0, // quantidadeGaloes
@@ -170,13 +171,19 @@ public class GeladinhoController {
                 .map(pi -> new ProdutoIngredienteDTO(pi.getIngrediente().getId(), pi.getQuantidade().doubleValue()))
                 .toList();
 
+        // Calcula o preço de custo unitário
+        double precoCustoUnitario = 0.0;
+        if (produto.getEstoqueAtual() > 0 && produto.getPrecoCusto() != null) {
+            precoCustoUnitario = produto.getPrecoCusto() / produto.getEstoqueAtual();
+        }
+
         return new ProdutoDTO(
                 produto.getId(),
                 produto.getSabor(),
                 produto.getEstoqueInicial(),
                 produto.getEstoqueAtual(),
                 produto.getPrecoCusto(),
-                //produto.getPrecoCustoUnitario(),
+                precoCustoUnitario,
                 ingredientesDTO,
                 produto.getFonteAgua(),
                 produto.getQuantidadeGaloes(),
@@ -203,7 +210,8 @@ public class GeladinhoController {
         produto.setSabor(produtoDTO.sabor());
         produto.setEstoqueInicial(produtoDTO.estoqueInicial());
         produto.setEstoqueAtual(produtoDTO.estoqueAtual());
-        //produto.setPrecoCusto(produtoDTO.precoCusto());
+        produto.setPrecoCusto(produtoDTO.precoCusto());
+        produto.setPrecoCustoUnitario(produtoDTO.precoCustoUnitario());
         produto.setFonteAgua(produtoDTO.fonteAgua());
         produto.setQuantidadeGaloes(produtoDTO.quantidadeGaloes());
         produto.setMetrosCubicosAgua(produtoDTO.metrosCubicosAgua());

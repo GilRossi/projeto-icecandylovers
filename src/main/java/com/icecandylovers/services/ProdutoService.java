@@ -76,7 +76,7 @@ public class ProdutoService {
                 produto.getEstoqueInicial(),
                 produto.getEstoqueAtual(),
                 produto.getPrecoCusto() != null ? produto.getPrecoCusto() : 0.0,
-                //produto.getPrecoCustoUnitario() != null ? produto.getPrecoCustoUnitario() : 0.0,
+                produto.getPrecoCustoUnitario() != null ? produto.getPrecoCustoUnitario() : 0.0,
                 ingredientesDTO,
                 produto.getFonteAgua(),
                 produto.getQuantidadeGaloes(),

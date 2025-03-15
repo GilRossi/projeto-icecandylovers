@@ -10,7 +10,7 @@ public record ProdutoDTO(
         Integer estoqueInicial, // Alterado de int para Integer
         Integer estoqueAtual,    // Alterado de int para Integer
         double precoCusto,
-        //double precoCustoUnitario,
+        double precoCustoUnitario,
         List<ProdutoIngredienteDTO> ingredientes,
         String fonteAgua,
         Double quantidadeGaloes,
@@ -46,6 +46,7 @@ public record ProdutoDTO(
                 produto.getEstoqueInicial(),
                 produto.getEstoqueAtual(),
                 produto.getPrecoCusto(),
+                produto.getPrecoCustoUnitario(),
                 ingredientesDTO,
                 produto.getFonteAgua(),
                 produto.getQuantidadeGaloes(),
