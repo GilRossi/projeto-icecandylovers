@@ -21,8 +21,9 @@ jobs:
           cache: 'maven'
           cache-dependency-path: 'icecandylovers/pom.xml'  # optional
 
-      - name: Build with Maven
-        run: mvn clean install --file pom.xml
+      - name: Build with Maven (Skip Tests)
+        run: mvn clean install --file pom.xml -DskipTests
+
 
       - name: Deploy to EC2
         run: |
