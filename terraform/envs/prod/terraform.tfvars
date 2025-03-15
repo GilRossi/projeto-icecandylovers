@@ -1,1 +1,1 @@
-bucket_name = "main-us-east-1-buildrun-icecandylovers-pipeline"
+bucket_name = "prod-us-east-1-buildrun-icecandylovers-pipeline"
