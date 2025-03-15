@@ -154,26 +154,15 @@ function calcularPrecoCusto() {
     document.getElementById('precoCusto').value = totalCusto.toFixed(2);
 }
 
-//função do botão para salvar geladinho
-document.addEventListener('DOMContentLoaded', function() {
-    const salvarBtn = document.getElementById('salvarGeladinhoBtn');
-    if (salvarBtn) {
-        salvarBtn.addEventListener('click', salvarGeladinho);
-        console.log('Botão Salvar Geladinho configurado.');
-    } else {
-        console.error('Botão "Salvar Geladinho" não encontrado.');
-    }
-});
+function salvarGeladinho(event) {
+    event.preventDefault(); // Impede o comportamento padrão do formulário
 
-// Função para salvar o geladinho via AJAX
-function salvarGeladinho() {
     const form = document.getElementById('formCadastroGeladinho');
     const formData = new FormData(form);
 
     const csrfToken = document.querySelector('meta[name="_csrf"]').content;
     const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
-    // Envia os dados do formulário via AJAX
     fetch('/geladinhos/salvar', {
         method: 'POST',
         headers: {
@@ -185,22 +174,45 @@ function salvarGeladinho() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Geladinho salvo com sucesso!');
+            // Exibe a mensagem de sucesso no modal
+            const modalBody = document.querySelector('#mensagemModal .modal-body');
+            modalBody.textContent = 'Geladinho salvo com sucesso!';
 
-            // Atualiza a interface com as novas informações
-            atualizarInformacoesGeladinho(data.geladinho);
+            // Abre o modal
+            const mensagemModal = new bootstrap.Modal(document.getElementById('mensagemModal'));
+            mensagemModal.show();
 
             // Opcional: limpa os campos do formulário
             form.reset();
         } else {
-            alert('Erro ao salvar o geladinho: ' + data.error);
+            // Exibe a mensagem de erro no modal
+            const modalBody = document.querySelector('#mensagemModal .modal-body');
+            modalBody.textContent = 'Erro ao salvar o geladinho: ' + data.error;
+
+            // Abre o modal
+            const mensagemModal = new bootstrap.Modal(document.getElementById('mensagemModal'));
+            mensagemModal.show();
         }
     })
     .catch(error => {
         console.error('Erro ao salvar geladinho:', error);
-        alert('Ocorreu um erro inesperado. Tente novamente mais tarde.');
+        // Exibe a mensagem de erro no modal
+        const modalBody = document.querySelector('#mensagemModal .modal-body');
+        modalBody.textContent = 'Ocorreu um erro inesperado. Tente novamente mais tarde.';
+
+        // Abre o modal
+        const mensagemModal = new bootstrap.Modal(document.getElementById('mensagemModal'));
+        mensagemModal.show();
     });
 }
+
+// Adiciona o evento de submit ao formulário
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('formCadastroGeladinho');
+    if (form) {
+        form.addEventListener('submit', salvarGeladinho);
+    }
+});
 
 // Função para atualizar as informações na interface
 function atualizarInformacoesGeladinho(geladinho) {
